@@ -15,6 +15,7 @@ type ValueVisitor interface {
 	VisitUnsigned2(Unsigned2)
 	VisitUnsigned4(Unsigned4)
 	VisitUnsigned8(Unsigned8)
+	VisitBool(Bool)
 	VisitNull()
 	VisitStruct(Struct)
 	VisitString1(String1)

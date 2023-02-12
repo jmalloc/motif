@@ -9,6 +9,8 @@ const (
 	unsigned2Type = 0b000_00101
 	unsigned4Type = 0b000_00110
 	unsigned8Type = 0b000_00111
+	boolFalseType = 0b000_01000
+	boolTrueType  = 0b000_01001
 	nullType      = 0b000_10100
 	structType    = 0b000_10101
 	string1Type   = 0b000_01100

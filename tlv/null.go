@@ -1,9 +1,9 @@
 package tlv
 
 // Null is the TLV null value.
-var Null Value = null{}
+const Null null = 0
 
-type null struct{}
+type null uint8
 
 // AcceptVisitor dispatches to the method on v that corresponds to the concrete
 // type the method's receiver.
