@@ -13,8 +13,15 @@ const (
 
 	boolFalseType = 0b000_01000
 	boolTrueType  = 0b000_01001
-	nullType      = 0b000_10100
-	structType    = 0b000_10101
+
+	float4Type = 0b000_01010
+	float8Type = 0b000_01011
+
+	nullType = 0b000_10100
+
+	structType = 0b000_10101
+	arrayType  = 0b000_10110
+	listType   = 0b000_10111
 
 	utf8String1Type = 0b000_01100
 	utf8String2Type = 0b000_01101
@@ -28,8 +35,14 @@ const (
 )
 
 const (
-	anonymousTagForm       = 0b000_00000
-	contextSpecificTagForm = 0b001_00000
+	anonymousTagForm        = 0b000_00000
+	contextSpecificTagForm  = 0b001_00000
+	commonProfileTag2Form   = 0b010_00000
+	commonProfileTag4Form   = 0b011_00000
+	implicitProfileTag2Form = 0b100_00000
+	implicitProfileTag4Form = 0b101_00000
+	fullyQualifiedTag6Form  = 0b110_00000
+	fullyQualifiedTag8Form  = 0b111_00000
 )
 
 const endOfContainer = 0b000_11000

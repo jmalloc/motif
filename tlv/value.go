@@ -16,6 +16,8 @@ type ValueVisitor interface {
 	VisitUnsigned4(Unsigned4)
 	VisitUnsigned8(Unsigned8)
 	VisitBool(Bool)
+	VisitFloat4(Float4)
+	VisitFloat8(Float8)
 	VisitNull()
 	VisitStruct(Struct)
 	VisitString1(String1)
