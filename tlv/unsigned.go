@@ -29,37 +29,3 @@ func (u Unsigned4) AcceptVisitor(v ValueVisitor) { v.VisitUnsigned4(u) }
 // AcceptVisitor dispatches to the method on v that corresponds to the concrete
 // type the method's receiver.
 func (u Unsigned8) AcceptVisitor(v ValueVisitor) { v.VisitUnsigned8(u) }
-
-func (m marshaler) VisitUnsigned1(u Unsigned1) {
-	m.WriteControl(unsigned1Type)
-	m.WriteByte(byte(u))
-}
-
-func (m marshaler) VisitUnsigned2(u Unsigned2) {
-	m.WriteControl(unsigned2Type)
-	m.Grow(2)
-	m.WriteByte(byte(u))
-	m.WriteByte(byte(u >> 8))
-}
-
-func (m marshaler) VisitUnsigned4(u Unsigned4) {
-	m.WriteControl(unsigned4Type)
-	m.Grow(4)
-	m.WriteByte(byte(u))
-	m.WriteByte(byte(u >> 8))
-	m.WriteByte(byte(u >> 16))
-	m.WriteByte(byte(u >> 24))
-}
-
-func (m marshaler) VisitUnsigned8(u Unsigned8) {
-	m.WriteControl(unsigned8Type)
-	m.Grow(8)
-	m.WriteByte(byte(u))
-	m.WriteByte(byte(u >> 8))
-	m.WriteByte(byte(u >> 16))
-	m.WriteByte(byte(u >> 24))
-	m.WriteByte(byte(u >> 32))
-	m.WriteByte(byte(u >> 40))
-	m.WriteByte(byte(u >> 48))
-	m.WriteByte(byte(u >> 56))
-}

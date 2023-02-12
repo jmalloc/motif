@@ -10,7 +10,3 @@ type null uint8
 func (null) AcceptVisitor(v ValueVisitor) {
 	v.VisitNull()
 }
-
-func (m marshaler) VisitNull() {
-	m.WriteControl(nullType)
-}

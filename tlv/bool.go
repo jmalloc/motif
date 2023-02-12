@@ -16,11 +16,3 @@ type Bool bool
 func (b Bool) AcceptVisitor(v ValueVisitor) {
 	v.VisitBool(b)
 }
-
-func (m marshaler) VisitBool(b Bool) {
-	if b {
-		m.WriteControl(boolTrueType)
-	} else {
-		m.WriteControl(boolFalseType)
-	}
-}

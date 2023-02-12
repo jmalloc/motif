@@ -19,11 +19,3 @@ type StructMember struct {
 func (m StructMember) Components() (Tag, Value) {
 	return m.Tag, m.Value
 }
-
-func (m marshaler) VisitStruct(s Struct) {
-	m.WriteControl(structType)
-	for _, sm := range s {
-		marshal(m.Buffer, sm)
-	}
-	m.WriteByte(endOfContainer)
-}
