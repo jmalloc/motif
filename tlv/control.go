@@ -1,6 +1,11 @@
 package tlv
 
 const (
+	typeMask    = 0b000_11111
+	tagFormMask = 0b111_00000
+)
+
+const (
 	signed1Type = 0b000_00000
 	signed2Type = 0b000_00001
 	signed4Type = 0b000_00010

@@ -34,13 +34,6 @@ func (m marshaler) WriteControl(c byte) {
 	m.Bytes()[m.start] |= c
 }
 
-func writeInt[T constraints.Integer](m marshaler, n T) {
-	size := int(unsafe.Sizeof(n))
-	for i := 0; i < size; i++ {
-		m.WriteByte(byte(n >> (8 * i)))
-	}
-}
-
 func (m marshaler) VisitSigned1(s Signed1) {
 	m.WriteControl(signed1Type)
 	writeInt(m, s)
@@ -200,4 +193,11 @@ func (m marshaler) VisitFullyQualifiedTag8(t FullyQualifiedTag8) {
 	writeInt(m, t.VendorID)
 	writeInt(m, t.Profile)
 	writeInt(m, t.Tag)
+}
+
+func writeInt[T constraints.Integer](m marshaler, n T) {
+	size := int(unsafe.Sizeof(n))
+	for i := 0; i < size; i++ {
+		m.WriteByte(byte(n >> (8 * i)))
+	}
 }
