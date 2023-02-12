@@ -22,4 +22,8 @@ type ValueVisitor interface {
 	VisitString2(String2)
 	VisitString4(String4)
 	VisitString8(String8)
+	VisitBytes1(Bytes1)
+	VisitBytes2(Bytes2)
+	VisitBytes4(Bytes4)
+	VisitBytes8(Bytes8)
 }

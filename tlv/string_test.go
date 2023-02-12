@@ -12,7 +12,7 @@ import (
 
 var _ = Describe("func Marshal()", func() {
 	DescribeTable(
-		"it encodes strings correctly",
+		"it encodes UTF-8 strings correctly",
 		func(v Value, expect []byte) {
 			data, err := Marshal(Root{Value: v})
 			Expect(err).ShouldNot(HaveOccurred())
