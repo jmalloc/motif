@@ -14,26 +14,18 @@ type (
 	String8 string
 )
 
-// AcceptElementVisitor invokes the appropriate method on vis.
-func (v String1) AcceptElementVisitor(vis ElementVisitor) { vis.VisitAnonymousElement(v) }
+// AcceptVisitor dispatches to the method on v that corresponds to the concrete
+// type the method's receiver.
+func (s String1) AcceptVisitor(v ValueVisitor) { v.VisitString1(s) }
 
-// AcceptElementVisitor invokes the appropriate method on vis.
-func (v String2) AcceptElementVisitor(vis ElementVisitor) { vis.VisitAnonymousElement(v) }
+// AcceptVisitor dispatches to the method on v that corresponds to the concrete
+// type the method's receiver.
+func (s String2) AcceptVisitor(v ValueVisitor) { v.VisitString2(s) }
 
-// AcceptElementVisitor invokes the appropriate method on vis.
-func (v String4) AcceptElementVisitor(vis ElementVisitor) { vis.VisitAnonymousElement(v) }
+// AcceptVisitor dispatches to the method on v that corresponds to the concrete
+// type the method's receiver.
+func (s String4) AcceptVisitor(v ValueVisitor) { v.VisitString4(s) }
 
-// AcceptElementVisitor invokes the appropriate method on vis.
-func (v String8) AcceptElementVisitor(vis ElementVisitor) { vis.VisitAnonymousElement(v) }
-
-// AcceptValueVisitor invokes the appropriate method on vis.
-func (v String1) AcceptValueVisitor(vis ValueVisitor) { vis.VisitString1(v) }
-
-// AcceptValueVisitor invokes the appropriate method on vis.
-func (v String2) AcceptValueVisitor(vis ValueVisitor) { vis.VisitString2(v) }
-
-// AcceptValueVisitor invokes the appropriate method on vis.
-func (v String4) AcceptValueVisitor(vis ValueVisitor) { vis.VisitString4(v) }
-
-// AcceptValueVisitor invokes the appropriate method on vis.
-func (v String8) AcceptValueVisitor(vis ValueVisitor) { vis.VisitString8(v) }
+// AcceptVisitor dispatches to the method on v that corresponds to the concrete
+// type the method's receiver.
+func (s String8) AcceptVisitor(v ValueVisitor) { v.VisitString8(s) }

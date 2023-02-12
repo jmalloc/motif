@@ -1,12 +1,8 @@
 package tlv
 
 // Value is an interface for a TLV value.
-//
-// A value is also an "anonymous" element, that is, an element without a tag.
 type Value interface {
-	Element
-
-	AcceptValueVisitor(ValueVisitor)
+	AcceptVisitor(ValueVisitor)
 }
 
 // ValueVisitor is an interface for visiting TLV values.

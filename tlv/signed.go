@@ -14,26 +14,18 @@ type (
 	Signed8 int64
 )
 
-// AcceptElementVisitor calls the appropriate method on vis.
-func (v Signed1) AcceptElementVisitor(vis ElementVisitor) { vis.VisitAnonymousElement(v) }
+// AcceptVisitor dispatches to the method on v that corresponds to the concrete
+// type the method's receiver.
+func (s Signed1) AcceptVisitor(v ValueVisitor) { v.VisitSigned1(s) }
 
-// AcceptElementVisitor calls the appropriate method on vis.
-func (v Signed2) AcceptElementVisitor(vis ElementVisitor) { vis.VisitAnonymousElement(v) }
+// AcceptVisitor dispatches to the method on v that corresponds to the concrete
+// type the method's receiver.
+func (s Signed2) AcceptVisitor(v ValueVisitor) { v.VisitSigned2(s) }
 
-// AcceptElementVisitor calls the appropriate method on vis.
-func (v Signed4) AcceptElementVisitor(vis ElementVisitor) { vis.VisitAnonymousElement(v) }
+// AcceptVisitor dispatches to the method on v that corresponds to the concrete
+// type the method's receiver.
+func (s Signed4) AcceptVisitor(v ValueVisitor) { v.VisitSigned4(s) }
 
-// AcceptElementVisitor calls the appropriate method on vis.
-func (v Signed8) AcceptElementVisitor(vis ElementVisitor) { vis.VisitAnonymousElement(v) }
-
-// AcceptValueVisitor calls the appropriate method on vis.
-func (v Signed1) AcceptValueVisitor(vis ValueVisitor) { vis.VisitSigned1(v) }
-
-// AcceptValueVisitor calls the appropriate method on vis.
-func (v Signed2) AcceptValueVisitor(vis ValueVisitor) { vis.VisitSigned2(v) }
-
-// AcceptValueVisitor calls the appropriate method on vis.
-func (v Signed4) AcceptValueVisitor(vis ValueVisitor) { vis.VisitSigned4(v) }
-
-// AcceptValueVisitor calls the appropriate method on vis.
-func (v Signed8) AcceptValueVisitor(vis ValueVisitor) { vis.VisitSigned8(v) }
+// AcceptVisitor dispatches to the method on v that corresponds to the concrete
+// type the method's receiver.
+func (s Signed8) AcceptVisitor(v ValueVisitor) { v.VisitSigned8(s) }

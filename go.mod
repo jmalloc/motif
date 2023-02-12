@@ -5,7 +5,6 @@ go 1.19
 require (
 	github.com/onsi/ginkgo/v2 v2.8.0
 	github.com/onsi/gomega v1.25.0
-	golang.org/x/exp v0.0.0-20230203172020-98cc5a0785f9
 )
 
 require (

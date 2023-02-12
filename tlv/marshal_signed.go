@@ -7,36 +7,36 @@ const (
 	signed8Type = 0b000_00011
 )
 
-func (m *marshaler) VisitSigned1(v Signed1) {
-	m.control |= signed1Type
-	m.payload.WriteByte(byte(v))
+func (m marshaler) VisitSigned1(v Signed1) {
+	m.WriteControl(signed1Type)
+	m.WriteByte(byte(v))
 }
 
-func (m *marshaler) VisitSigned2(v Signed2) {
-	m.control |= signed2Type
-	m.payload.Grow(2)
-	m.payload.WriteByte(byte(v))
-	m.payload.WriteByte(byte(v >> 8))
+func (m marshaler) VisitSigned2(v Signed2) {
+	m.WriteControl(signed2Type)
+	m.Grow(2)
+	m.WriteByte(byte(v))
+	m.WriteByte(byte(v >> 8))
 }
 
-func (m *marshaler) VisitSigned4(v Signed4) {
-	m.control |= signed4Type
-	m.payload.Grow(4)
-	m.payload.WriteByte(byte(v))
-	m.payload.WriteByte(byte(v >> 8))
-	m.payload.WriteByte(byte(v >> 16))
-	m.payload.WriteByte(byte(v >> 24))
+func (m marshaler) VisitSigned4(v Signed4) {
+	m.WriteControl(signed4Type)
+	m.Grow(4)
+	m.WriteByte(byte(v))
+	m.WriteByte(byte(v >> 8))
+	m.WriteByte(byte(v >> 16))
+	m.WriteByte(byte(v >> 24))
 }
 
-func (m *marshaler) VisitSigned8(v Signed8) {
-	m.control |= signed8Type
-	m.payload.Grow(8)
-	m.payload.WriteByte(byte(v))
-	m.payload.WriteByte(byte(v >> 8))
-	m.payload.WriteByte(byte(v >> 16))
-	m.payload.WriteByte(byte(v >> 24))
-	m.payload.WriteByte(byte(v >> 32))
-	m.payload.WriteByte(byte(v >> 40))
-	m.payload.WriteByte(byte(v >> 48))
-	m.payload.WriteByte(byte(v >> 56))
+func (m marshaler) VisitSigned8(v Signed8) {
+	m.WriteControl(signed8Type)
+	m.Grow(8)
+	m.WriteByte(byte(v))
+	m.WriteByte(byte(v >> 8))
+	m.WriteByte(byte(v >> 16))
+	m.WriteByte(byte(v >> 24))
+	m.WriteByte(byte(v >> 32))
+	m.WriteByte(byte(v >> 40))
+	m.WriteByte(byte(v >> 48))
+	m.WriteByte(byte(v >> 56))
 }

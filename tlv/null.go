@@ -1,14 +1,12 @@
 package tlv
 
-// Null is the null value.
+// Null is the TLV null value.
 var Null Value = null{}
 
 type null struct{}
 
-func (v null) AcceptElementVisitor(vis ElementVisitor) {
-	vis.VisitAnonymousElement(v)
-}
-
-func (null) AcceptValueVisitor(vis ValueVisitor) {
-	vis.VisitNull()
+// AcceptVisitor dispatches to the method on v that corresponds to the concrete
+// type the method's receiver.
+func (null) AcceptVisitor(v ValueVisitor) {
+	v.VisitNull()
 }

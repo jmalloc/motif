@@ -4,34 +4,26 @@ import "bytes"
 
 // Marshal returns the binary representation of e.
 func Marshal(e Element) ([]byte, error) {
-	m := &marshaler{}
-	e.AcceptElementVisitor(m)
-	return m.result.Bytes(), nil
+	w := &bytes.Buffer{}
+	marshal(w, e)
+	return w.Bytes(), nil
+}
+
+func marshal(w *bytes.Buffer, e Element) {
+	start := w.Len()
+	w.WriteByte(0)
+
+	m := marshaler{w, start}
+	t, v := e.Components()
+	t.AcceptVisitor(m)
+	v.AcceptVisitor(m)
 }
 
 type marshaler struct {
-	result  bytes.Buffer
-	control byte
-	payload bytes.Buffer
+	*bytes.Buffer
+	start int
 }
 
-func (m *marshaler) VisitAnonymousElement(v Value) {
-	m.control = 0
-	m.payload.Reset()
-
-	v.AcceptValueVisitor(m)
-
-	m.result.WriteByte(m.control)
-	m.result.Write(m.payload.Bytes())
-}
-
-func (m *marshaler) VisitTaggedElement(t Tag, v Value) {
-	m.control = 0
-	m.payload.Reset()
-
-	t.AcceptTagVisitor(m)
-	v.AcceptValueVisitor(m)
-
-	m.result.WriteByte(m.control)
-	m.result.Write(m.payload.Bytes())
+func (m marshaler) WriteControl(c byte) {
+	m.Bytes()[m.start] |= c
 }

@@ -2,25 +2,35 @@ package tlv
 
 // Tag is an interface for a TLV tag.
 type Tag interface {
-	AcceptTagVisitor(TagVisitor)
+	AcceptVisitor(TagVisitor)
 }
 
 // TagVisitor is an interface for visiting TLV tags.
 type TagVisitor interface {
+	VisitAnonymousTag()
+	VisitContextSpecificTag(ContextSpecificTag)
 }
 
-// ApplyTag tags an anonymous element.
-func ApplyTag(t Tag, v Value) Element {
-	return TaggedElement{t, v}
+// AnonymousTag is a specifical tag that identifies an element without any tag
+// value.
+var AnonymousTag Tag = anonymousTag{}
+
+// anonymousTag is a specifical tag that identifies an element without any tag
+// value.
+type anonymousTag struct{}
+
+// AcceptVisitor dispatches to the method on v that corresponds to the concrete
+// type the method's receiver.
+func (anonymousTag) AcceptVisitor(v TagVisitor) {
+	v.VisitAnonymousTag()
 }
 
-// TaggedElement is an element with a (non-anonymous) tag.
-type TaggedElement struct {
-	t Tag
-	v Value
-}
+// ContextSpecificTag is a tag that identifies an element within the context of
+// a specific structure.
+type ContextSpecificTag uint8
 
-// AcceptElementVisitor invokes the appropriate method on vis.
-func (e TaggedElement) AcceptElementVisitor(vis ElementVisitor) {
-	vis.VisitTaggedElement(e.t, e.v)
+// AcceptVisitor dispatches to the method on v that corresponds to the concrete
+// type the method's receiver.
+func (t ContextSpecificTag) AcceptVisitor(v TagVisitor) {
+	v.VisitContextSpecificTag(t)
 }

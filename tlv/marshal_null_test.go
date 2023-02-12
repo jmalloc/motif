@@ -10,12 +10,12 @@ var _ = Describe("func Marshal()", func() {
 	DescribeTable(
 		"it encodes NULL correctly",
 		func(v Value, expect []byte) {
-			data, err := Marshal(v)
+			data, err := Marshal(Root{Value: v})
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(data).To(Equal(expect))
 		},
 		Entry(
-			"null (anonymous)",
+			"null",
 			Null,
 			[]byte{0x14},
 		),
