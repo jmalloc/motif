@@ -1,5 +1,6 @@
 package tlv
 
+// Tag is an interface for a TLV tag.
 type Tag interface {
 	AcceptTagVisitor(TagVisitor)
 }
@@ -10,14 +11,16 @@ type TagVisitor interface {
 
 // ApplyTag tags an anonymous element.
 func ApplyTag(t Tag, v Value) Element {
-	return taggedElement{t, v}
+	return TaggedElement{t, v}
 }
 
-type taggedElement struct {
+// TaggedElement is an element with a (non-anonymous) tag.
+type TaggedElement struct {
 	t Tag
 	v Value
 }
 
-func (e taggedElement) AcceptElementVisitor(vis ElementVisitor) {
+// AcceptElementVisitor invokes the appropriate method on vis.
+func (e TaggedElement) AcceptElementVisitor(vis ElementVisitor) {
 	vis.VisitTaggedElement(e.t, e.v)
 }

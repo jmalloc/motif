@@ -12,26 +12,26 @@ func Marshal(e Element) ([]byte, error) {
 type marshaler struct {
 	result  bytes.Buffer
 	control byte
-	data    bytes.Buffer
+	payload bytes.Buffer
 }
 
 func (m *marshaler) VisitAnonymousElement(v Value) {
 	m.control = 0
-	m.data.Reset()
+	m.payload.Reset()
 
 	v.AcceptValueVisitor(m)
 
 	m.result.WriteByte(m.control)
-	m.result.Write(m.data.Bytes())
+	m.result.Write(m.payload.Bytes())
 }
 
 func (m *marshaler) VisitTaggedElement(t Tag, v Value) {
 	m.control = 0
-	m.data.Reset()
+	m.payload.Reset()
 
 	t.AcceptTagVisitor(m)
 	v.AcceptValueVisitor(m)
 
 	m.result.WriteByte(m.control)
-	m.result.Write(m.data.Bytes())
+	m.result.Write(m.payload.Bytes())
 }
