@@ -34,3 +34,11 @@ type ContextSpecificTag uint8
 func (t ContextSpecificTag) AcceptVisitor(v TagVisitor) {
 	v.VisitContextSpecificTag(t)
 }
+
+func (m marshaler) VisitAnonymousTag() {
+}
+
+func (m marshaler) VisitContextSpecificTag(t ContextSpecificTag) {
+	m.WriteControl(contextSpecificTagForm)
+	m.WriteByte(byte(t))
+}

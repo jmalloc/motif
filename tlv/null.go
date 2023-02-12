@@ -10,3 +10,7 @@ type null struct{}
 func (null) AcceptVisitor(v ValueVisitor) {
 	v.VisitNull()
 }
+
+func (m marshaler) VisitNull() {
+	m.WriteControl(nullType)
+}
