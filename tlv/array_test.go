@@ -9,11 +9,28 @@ import (
 var _ = Describe("func Marshal()", func() {
 	DescribeTable(
 		"it encodes arrays correctly",
-		func(v Value, expect []byte) {
-			data, err := Marshal(Root{Value: v})
+		func(expectValue Array, expectData []byte) {
+			data, err := Marshal(Root{Value: expectValue})
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(data).To(Equal(expect))
+			Expect(data).To(Equal(expectData))
+
+			e, err := Unmarshal(data)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			t, v := e.Components()
+			Expect(t).To(Equal(AnonymousTag))
+
+			if len(expectValue) == 0 {
+				Expect(v).To(HaveLen(0))
+			} else {
+				Expect(v).To(Equal(expectValue))
+			}
 		},
+		Entry(
+			"nil array",
+			Array(nil),
+			[]byte{0x16, 0x18},
+		),
 		Entry(
 			"empty array",
 			Array{},
@@ -38,7 +55,7 @@ var _ = Describe("func Marshal()", func() {
 			Array{
 				{Signed1(42)},
 				{Signed4(-170000)},
-				{Struct{}},
+				{Struct(nil)},
 				{Float4(17.9)},
 				{String1("Hello!")},
 			},

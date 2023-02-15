@@ -6,13 +6,20 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("func Marshal()", func() {
+var _ = Describe("func Marshal() and Unmarshal()", func() {
 	DescribeTable(
-		"it encodes boolean values correctly",
-		func(v Value, expect []byte) {
-			data, err := Marshal(Root{Value: v})
+		"it encodes/decodes booleans correctly",
+		func(expectValue Value, expectData []byte) {
+			data, err := Marshal(Root{Value: expectValue})
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(data).To(Equal(expect))
+			Expect(data).To(Equal(expectData))
+
+			e, err := Unmarshal(data)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			t, v := e.Components()
+			Expect(t).To(Equal(AnonymousTag))
+			Expect(v).To(Equal(expectValue))
 		},
 		Entry(
 			"false",

@@ -8,11 +8,18 @@ import (
 
 var _ = Describe("func Marshal()", func() {
 	DescribeTable(
-		"it encodes signed integers correctly",
-		func(v Value, expect []byte) {
-			data, err := Marshal(Root{Value: v})
+		"it encodes/decodes signed integers correctly",
+		func(expectValue Value, expectData []byte) {
+			data, err := Marshal(Root{Value: expectValue})
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(data).To(Equal(expect))
+			Expect(data).To(Equal(expectData))
+
+			e, err := Unmarshal(data)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			t, v := e.Components()
+			Expect(t).To(Equal(AnonymousTag))
+			Expect(v).To(Equal(expectValue))
 		},
 		Entry(
 			"1 octet, positive",

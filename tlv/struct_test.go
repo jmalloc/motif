@@ -9,11 +9,28 @@ import (
 var _ = Describe("func Marshal()", func() {
 	DescribeTable(
 		"it encodes structures correctly",
-		func(v Value, expect []byte) {
-			data, err := Marshal(Root{Value: v})
+		func(expectValue Struct, expectData []byte) {
+			data, err := Marshal(Root{Value: expectValue})
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(data).To(Equal(expect))
+			Expect(data).To(Equal(expectData))
+
+			e, err := Unmarshal(data)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			t, v := e.Components()
+			Expect(t).To(Equal(AnonymousTag))
+
+			if len(expectValue) == 0 {
+				Expect(v).To(HaveLen(0))
+			} else {
+				Expect(v).To(Equal(expectValue))
+			}
 		},
+		Entry(
+			"nil structure",
+			Struct(nil),
+			[]byte{0x15, 0x18},
+		),
 		Entry(
 			"empty structure",
 			Struct{},

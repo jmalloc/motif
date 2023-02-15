@@ -8,12 +8,29 @@ import (
 
 var _ = Describe("func Marshal()", func() {
 	DescribeTable(
-		"it encodes lists correctly",
-		func(v Value, expect []byte) {
-			data, err := Marshal(Root{Value: v})
+		"it encodes/decodes lists correctly",
+		func(expectValue List, expectData []byte) {
+			data, err := Marshal(Root{Value: expectValue})
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(data).To(Equal(expect))
+			Expect(data).To(Equal(expectData))
+
+			e, err := Unmarshal(data)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			t, v := e.Components()
+			Expect(t).To(Equal(AnonymousTag))
+
+			if len(expectValue) == 0 {
+				Expect(v).To(HaveLen(0))
+			} else {
+				Expect(v).To(Equal(expectValue))
+			}
 		},
+		Entry(
+			"nil list",
+			List(nil),
+			[]byte{0x17, 0x18},
+		),
 		Entry(
 			"empty list",
 			List{},

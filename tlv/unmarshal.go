@@ -78,10 +78,10 @@ func unmarshalValue(r *bytes.Reader, c byte) (Value, error) {
 		return Null, nil
 	case structType:
 		return unmarshalStruct(r)
-	// case arrayType:
-	// 	return unmarshalArray(r)
-	// case listType:
-	// 	return unmarshalList(r)
+	case arrayType:
+		return unmarshalArray(r)
+	case listType:
+		return unmarshalList(r)
 	case utf8String1Type:
 		return unmarshalString[String1, uint8](r)
 	case utf8String2Type:
@@ -106,41 +106,47 @@ func unmarshalValue(r *bytes.Reader, c byte) (Value, error) {
 func unmarshalStruct(r *bytes.Reader) (Struct, error) {
 	var s Struct
 
-	for {
-		c, err := r.ReadByte()
-		if err != nil {
-			return nil, err
-		}
+	return s, readMembers(
+		r,
+		func(t Tag, v Value) error {
+			x, ok := t.(NonAnonymousTag)
+			if !ok {
+				return errors.New("struct members cannot be anonymous")
+			}
 
-		if c == endOfContainer {
-			return s, nil
-		}
-
-		if err := r.UnreadByte(); err != nil {
-			return nil, err
-		}
-
-		t, v, err := unmarshal(r)
-		if err != nil {
-			return nil, err
-		}
-
-		if t, ok := t.(NonAnonymousTag); ok {
-			s = append(s, StructMember{t, v})
-			continue
-		}
-
-		return nil, errors.New("struct members cannot be anonymous")
-	}
+			s = append(s, StructMember{x, v})
+			return nil
+		},
+	)
 }
 
-// func unmarshalArray(r *bytes.Reader) (Array, error) {
-// 	panic("unimplemented")
-// }
+func unmarshalArray(r *bytes.Reader) (Array, error) {
+	var a Array
 
-// func unmarshalList(r *bytes.Reader) (List, error) {
-// 	panic("unimplemented")
-// }
+	return a, readMembers(
+		r,
+		func(t Tag, v Value) error {
+			if t != AnonymousTag {
+				return errors.New("array members must be anonymous")
+			}
+
+			a = append(a, ArrayMember{v})
+			return nil
+		},
+	)
+}
+
+func unmarshalList(r *bytes.Reader) (List, error) {
+	var l List
+
+	return l, readMembers(
+		r,
+		func(t Tag, v Value) error {
+			l = append(l, ListMember{t, v})
+			return nil
+		},
+	)
+}
 
 func unmarshalString[S ~string | ~[]byte, L constraints.Unsigned](r *bytes.Reader) (S, error) {
 	var data []byte
@@ -239,4 +245,33 @@ func readInt[T constraints.Integer](r *bytes.Reader) (T, error) {
 	}
 
 	return v, nil
+}
+
+func readMembers(
+	r *bytes.Reader,
+	fn func(Tag, Value) error,
+) error {
+	for {
+		c, err := r.ReadByte()
+		if err != nil {
+			return err
+		}
+
+		if c == endOfContainer {
+			return nil
+		}
+
+		if err := r.UnreadByte(); err != nil {
+			return err
+		}
+
+		t, v, err := unmarshal(r)
+		if err != nil {
+			return err
+		}
+
+		if err := fn(t, v); err != nil {
+			return err
+		}
+	}
 }
