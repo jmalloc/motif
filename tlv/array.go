@@ -1,15 +1,15 @@
 package tlv
 
 // Array is a TLV array element.
-type Array []ArrayMember
+type Array []Value
 
-// NewArray returns an array with the given values as members.
-func NewArray(values ...Value) Array {
-	a := make(Array, len(values))
-	for i, v := range values {
-		a[i] = ArrayMember{v}
+// Members returns the elements that are members of the array.
+func (a Array) Members() []Element {
+	elements := make([]Element, len(a))
+	for i, v := range a {
+		elements[i] = arrayMember{v}
 	}
-	return a
+	return elements
 }
 
 // AcceptVisitor dispatches to the method on v that corresponds to the concrete
@@ -18,12 +18,10 @@ func (a Array) AcceptVisitor(v ValueVisitor) {
 	v.VisitArray(a)
 }
 
-// ArrayMember is an element that is a member of an array.
-type ArrayMember struct {
+type arrayMember struct {
 	Value Value
 }
 
-// Components returns the tag and value of the element.
-func (m ArrayMember) Components() (Tag, Value) {
-	return AnonymousTag, m.Value
+func (e arrayMember) Components() (Tag, Value) {
+	return AnonymousTag, e.Value
 }
