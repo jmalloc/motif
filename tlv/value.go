@@ -20,6 +20,7 @@ type ValueVisitor interface {
 	VisitFloat8(Float8)
 	VisitNull()
 	VisitStruct(Struct)
+	VisitArray(Array)
 	VisitString1(String1)
 	VisitString2(String2)
 	VisitString4(String4)

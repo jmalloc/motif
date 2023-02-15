@@ -105,6 +105,14 @@ func (m marshaler) VisitStruct(s Struct) {
 	m.WriteByte(endOfContainer)
 }
 
+func (m marshaler) VisitArray(a Array) {
+	m.WriteControl(arrayType)
+	for _, am := range a {
+		marshal(m.Buffer, am)
+	}
+	m.WriteByte(endOfContainer)
+}
+
 func (m marshaler) VisitString1(s String1) {
 	m.WriteControl(utf8String1Type)
 	writeInt(m, uint8(len(s)))
