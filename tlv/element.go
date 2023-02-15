@@ -2,26 +2,28 @@ package tlv
 
 // Element is an interface for a TLV element.
 type Element interface {
-	Components() (Tag, Value)
+	Tag() Tag
+	Value() Value
 }
 
 // Root is the element at the root of a TLV element tree.
 type Root struct {
-	Tag   Tag
-	Value Value
+	T Tag
+	V Value
 }
 
-// Components returns the tag and value of the element.
-func (r Root) Components() (Tag, Value) {
-	t := r.Tag
-	if t == nil {
-		t = AnonymousTag
+// Tag returns the element's tag.
+func (r Root) Tag() Tag {
+	if r.T == nil {
+		return AnonymousTag
 	}
+	return r.T
+}
 
-	v := r.Value
-	if v == nil {
-		v = Null
+// Value returns the element's value.
+func (r Root) Value() Value {
+	if r.V == nil {
+		return Null
 	}
-
-	return t, v
+	return r.V
 }

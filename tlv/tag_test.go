@@ -10,16 +10,13 @@ var _ = Describe("func Marshal()", func() {
 	DescribeTable(
 		"it encodes tags correctly",
 		func(expectTag Tag, expectData []byte) {
-			data, err := Marshal(Root{Tag: expectTag, Value: Signed1(0)})
+			data, err := Marshal(Root{T: expectTag, V: Signed1(0)})
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(data).To(Equal(expectData))
 
 			e, err := Unmarshal(data)
 			Expect(err).ShouldNot(HaveOccurred())
-
-			t, v := e.Components()
-			Expect(t).To(Equal(expectTag))
-			Expect(v).To(Equal(Signed1(0)))
+			Expect(e.Value()).To(Equal(Signed1(0)))
 		},
 		Entry(
 			"anonymous",

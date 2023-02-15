@@ -20,11 +20,16 @@ func (s Struct) AcceptVisitor(v ValueVisitor) {
 
 // StructMember is an element that is a member of a structure.
 type StructMember struct {
-	Tag   NonAnonymousTag
-	Value Value
+	T NonAnonymousTag
+	V Value
 }
 
-// Components returns the tag and value of the element.
-func (m StructMember) Components() (Tag, Value) {
-	return m.Tag, m.Value
+// Tag returns the element's tag.
+func (m StructMember) Tag() Tag {
+	return m.T
+}
+
+// Value returns the element's value.
+func (m StructMember) Value() Value {
+	return m.V
 }

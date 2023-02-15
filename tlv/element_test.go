@@ -9,8 +9,7 @@ import (
 var _ = Describe("type Root", func() {
 	It("has a meaningful zero-value", func() {
 		var r Root
-		t, v := r.Components()
-		Expect(t).To(Equal(AnonymousTag))
-		Expect(v).To(Equal(Null))
+		Expect(r.Tag()).To(Equal(AnonymousTag))
+		Expect(r.Value()).To(Equal(Null))
 	})
 })

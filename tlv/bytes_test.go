@@ -13,16 +13,13 @@ var _ = Describe("func Marshal()", func() {
 	DescribeTable(
 		"it encodes/decodes octet strings correctly",
 		func(expectValue Value, expectData []byte) {
-			data, err := Marshal(Root{Value: expectValue})
+			data, err := Marshal(Root{V: expectValue})
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(data).To(Equal(expectData))
 
 			e, err := Unmarshal(data)
 			Expect(err).ShouldNot(HaveOccurred())
-
-			t, v := e.Components()
-			Expect(t).To(Equal(AnonymousTag))
-			Expect(v).To(Equal(expectValue))
+			Expect(e.Value()).To(Equal(expectValue))
 		},
 		Entry(
 			"1 octet length, empty",

@@ -20,9 +20,8 @@ func marshal(w *bytes.Buffer, e Element) {
 	w.WriteByte(0)
 
 	m := marshaler{w, start}
-	t, v := e.Components()
-	t.AcceptVisitor(m)
-	v.AcceptVisitor(m)
+	e.Tag().AcceptVisitor(m)
+	e.Value().AcceptVisitor(m)
 }
 
 type marshaler struct {

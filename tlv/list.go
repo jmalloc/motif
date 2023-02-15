@@ -11,11 +11,16 @@ func (l List) AcceptVisitor(v ValueVisitor) {
 
 // ListMember is an element that is a member of a list.
 type ListMember struct {
-	Tag   Tag
-	Value Value
+	T Tag
+	V Value
 }
 
-// Components returns the tag and value of the element.
-func (e ListMember) Components() (Tag, Value) {
-	return e.Tag, e.Value
+// Tag returns the element's tag.
+func (m ListMember) Tag() Tag {
+	return m.T
+}
+
+// Value returns the element's value.
+func (m ListMember) Value() Value {
+	return m.V
 }
