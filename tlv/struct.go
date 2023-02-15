@@ -20,7 +20,7 @@ func (s Struct) AcceptVisitor(v ValueVisitor) {
 
 // StructMember is an element that is a member of a structure.
 type StructMember struct {
-	Tag   Tag
+	Tag   NonAnonymousTag
 	Value Value
 }
 

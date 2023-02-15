@@ -125,7 +125,12 @@ func unmarshalStruct(r *bytes.Reader) (Struct, error) {
 			return nil, err
 		}
 
-		s = append(s, StructMember{t, v})
+		if t, ok := t.(NonAnonymousTag); ok {
+			s = append(s, StructMember{t, v})
+			continue
+		}
+
+		return nil, errors.New("struct members cannot be anonymous")
 	}
 }
 

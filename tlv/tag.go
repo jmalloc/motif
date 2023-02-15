@@ -5,6 +5,12 @@ type Tag interface {
 	AcceptVisitor(TagVisitor)
 }
 
+// NonAnonymousTag is an interface for a TLV tag that is not AnonymousTag.
+type NonAnonymousTag interface {
+	Tag
+	isNotAnonymous()
+}
+
 // TagVisitor is an interface for visiting TLV tags.
 type TagVisitor interface {
 	VisitAnonymousTag()
@@ -96,3 +102,11 @@ func (t FullyQualifiedTag6) AcceptVisitor(v TagVisitor) { v.VisitFullyQualifiedT
 // AcceptVisitor dispatches to the method on v that corresponds to the concrete
 // type the method's receiver.
 func (t FullyQualifiedTag8) AcceptVisitor(v TagVisitor) { v.VisitFullyQualifiedTag8(t) }
+
+func (ContextSpecificTag) isNotAnonymous()  {}
+func (CommonProfileTag2) isNotAnonymous()   {}
+func (CommonProfileTag4) isNotAnonymous()   {}
+func (ImplicitProfileTag2) isNotAnonymous() {}
+func (ImplicitProfileTag4) isNotAnonymous() {}
+func (FullyQualifiedTag6) isNotAnonymous()  {}
+func (FullyQualifiedTag8) isNotAnonymous()  {}
