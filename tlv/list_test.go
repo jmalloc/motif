@@ -8,25 +8,29 @@ import (
 
 var _ = Describe("func Marshal()", func() {
 	DescribeTable(
-		"it encodes structures correctly",
+		"it encodes lists correctly",
 		func(v Value, expect []byte) {
 			data, err := Marshal(Root{Value: v})
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(data).To(Equal(expect))
 		},
 		Entry(
-			"empty structure",
-			Struct{},
-			[]byte{0x15, 0x18},
+			"empty list",
+			List{},
+			[]byte{0x17, 0x18},
 		),
 		Entry(
-			"two context specific tags, signed inte­ger, 1 octet values {0 = 42, 1 = -17}",
-			Struct{
+			"mix of anonymous and context tags, signed integer, 1 octet values, [1, 0 = 42, 2, 3, 0 = -17]",
+			List{
+				{AnonymousTag, Signed1(1)},
 				{ContextSpecificTag(0), Signed1(42)},
-				{ContextSpecificTag(1), Signed1(-17)},
+				{AnonymousTag, Signed1(2)},
+				{AnonymousTag, Signed1(3)},
+				{ContextSpecificTag(0), Signed1(-17)},
 			},
 			[]byte{
-				0x15, 0x20, 0x00, 0x2a, 0x20, 0x01, 0xef, 0x18,
+				0x17, 0x00, 0x01, 0x20, 0x00, 0x2a, 0x00, 0x02,
+				0x00, 0x03, 0x20, 0x00, 0xef, 0x18,
 			},
 		),
 	)

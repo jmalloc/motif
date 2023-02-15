@@ -5,11 +5,6 @@ type Element interface {
 	Components() (Tag, Value)
 }
 
-// Container is an interface for elements that contain other elements.
-type Container interface {
-	Members() []Element
-}
-
 // Root is the element at the root of a TLV element tree.
 type Root struct {
 	Tag   Tag

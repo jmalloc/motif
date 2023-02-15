@@ -21,6 +21,7 @@ type ValueVisitor interface {
 	VisitNull()
 	VisitStruct(Struct)
 	VisitArray(Array)
+	VisitList(List)
 	VisitString1(String1)
 	VisitString2(String2)
 	VisitString4(String4)

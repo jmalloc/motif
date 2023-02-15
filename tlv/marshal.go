@@ -99,16 +99,24 @@ func (m marshaler) VisitNull() {
 
 func (m marshaler) VisitStruct(s Struct) {
 	m.WriteControl(structType)
-	for _, mem := range s.Members() {
-		marshal(m.Buffer, mem)
+	for _, x := range s {
+		marshal(m.Buffer, x)
 	}
 	m.WriteByte(endOfContainer)
 }
 
 func (m marshaler) VisitArray(a Array) {
 	m.WriteControl(arrayType)
-	for _, mem := range a.Members() {
-		marshal(m.Buffer, mem)
+	for _, x := range a {
+		marshal(m.Buffer, x)
+	}
+	m.WriteByte(endOfContainer)
+}
+
+func (m marshaler) VisitList(l List) {
+	m.WriteControl(listType)
+	for _, x := range l {
+		marshal(m.Buffer, x)
 	}
 	m.WriteByte(endOfContainer)
 }
