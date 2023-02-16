@@ -16,20 +16,20 @@ type ValueVisitor interface {
 	VisitUnsigned4(Unsigned4) error
 	VisitUnsigned8(Unsigned8) error
 	VisitBool(Bool) error
-	VisitFloat4(Float4) error
-	VisitFloat8(Float8) error
+	VisitSingle(Single) error
+	VisitDouble(Double) error
 	VisitNull() error
 	VisitStruct(Struct) error
 	VisitArray(Array) error
 	VisitList(List) error
-	VisitString1(String1) error
-	VisitString2(String2) error
-	VisitString4(String4) error
-	VisitString8(String8) error
-	VisitBytes1(Bytes1) error
-	VisitBytes2(Bytes2) error
-	VisitBytes4(Bytes4) error
-	VisitBytes8(Bytes8) error
+	VisitUTF8String1(UTF8String1) error
+	VisitUTF8String2(UTF8String2) error
+	VisitUTF8String4(UTF8String4) error
+	VisitUTF8String8(UTF8String8) error
+	VisitOctetString1(OctetString1) error
+	VisitOctetString2(OctetString2) error
+	VisitOctetString4(OctetString4) error
+	VisitOctetString8(OctetString8) error
 }
 
 // VisitValue visits a value with a visitor.

@@ -12,52 +12,52 @@ var _ = DescribeTable(
 	testScalar,
 	Entry(
 		"single-precision, zero",
-		tlv.Float4(0),
+		tlv.Single(0),
 		[]byte{0x0a, 0x00, 0x00, 0x00, 0x00},
 	),
 	Entry(
 		"single-precision, 1.0 / 3.0",
-		tlv.Float4(1.0/3.0),
+		tlv.Single(1.0/3.0),
 		[]byte{0x0a, 0xab, 0xaa, 0xaa, 0x3e},
 	),
 	Entry(
 		"single-precision, 17.9",
-		tlv.Float4(17.9),
+		tlv.Single(17.9),
 		[]byte{0x0a, 0x33, 0x33, 0x8f, 0x41},
 	),
 	Entry(
 		"single-precision, positive infinity",
-		tlv.Float4(math.Float32frombits(0x7f800000)),
+		tlv.Single(math.Float32frombits(0x7f800000)),
 		[]byte{0x0a, 0x00, 0x00, 0x80, 0x7f},
 	),
 	Entry(
 		"single-precision, negative infinity",
-		tlv.Float4(math.Float32frombits(0xff800000)),
+		tlv.Single(math.Float32frombits(0xff800000)),
 		[]byte{0x0a, 0x00, 0x00, 0x80, 0xff},
 	),
 	Entry(
 		"double-precision, zero",
-		tlv.Float8(0),
+		tlv.Double(0),
 		[]byte{0x0b, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
 	),
 	Entry(
 		"double-precision, 1.0 / 3.0",
-		tlv.Float8(1.0/3.0),
+		tlv.Double(1.0/3.0),
 		[]byte{0x0b, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0xd5, 0x3f},
 	),
 	Entry(
 		"double-precision, 17.9",
-		tlv.Float8(17.9),
+		tlv.Double(17.9),
 		[]byte{0x0b, 0x66, 0x66, 0x66, 0x66, 0x66, 0xe6, 0x31, 0x40},
 	),
 	Entry(
 		"double-precision, positive infinity",
-		tlv.Float8(math.Inf(+1)),
+		tlv.Double(math.Inf(+1)),
 		[]byte{0x0b, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xf0, 0x7f},
 	),
 	Entry(
 		"double-precision, negative infinity",
-		tlv.Float8(math.Inf(-1)),
+		tlv.Double(math.Inf(-1)),
 		[]byte{0x0b, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xf0, 0xff},
 	),
 )

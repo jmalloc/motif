@@ -24,17 +24,23 @@ func WriteInt[T constraints.Integer](w io.Writer, n T) error {
 // ReadInt reads an integer from r in little-endian order.
 func ReadInt[T constraints.Integer](r io.Reader) (T, error) {
 	var v T
-	size := int(unsafe.Sizeof(v))
+	return v, AssignInt(r, &v)
+}
+
+// AssignInt reads an integer from r in little-endian order and assigns it to
+// *v.
+func AssignInt[T constraints.Integer](r io.Reader, v *T) error {
+	size := int(unsafe.Sizeof(*v))
 	data := make([]byte, size)
 
 	if _, err := io.ReadFull(r, data); err != nil {
-		return v, err
+		return err
 	}
 
 	for i := range data {
 		shift := 8 * i
-		v |= T(data[i]) << shift
+		*v |= T(data[i]) << shift
 	}
 
-	return v, nil
+	return nil
 }

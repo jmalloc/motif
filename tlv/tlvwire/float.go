@@ -2,7 +2,6 @@ package tlvwire
 
 import (
 	"bytes"
-	"io"
 	"math"
 
 	"github.com/jmalloc/motif/internal/wire"
@@ -10,16 +9,19 @@ import (
 )
 
 const (
-	float4Type = 0b000_01010
-	float8Type = 0b000_01011
+	singleType = 0b000_01010
+	doubleType = 0b000_01011
 )
 
-func (c *controlWriter) VisitFloat4(v tlv.Float4) error { return c.set(float4Type) }
-func (c *controlWriter) VisitFloat8(v tlv.Float8) error { return c.set(float8Type) }
-func (w *payloadWriter) VisitFloat4(v tlv.Float4) error { return marshalFloat4(w, v) }
-func (w *payloadWriter) VisitFloat8(v tlv.Float8) error { return marshalFloat8(w, v) }
+func (c *controlWriter) VisitSingle(v tlv.Single) error {
+	return c.write(singleType)
+}
 
-func marshalFloat4(w io.Writer, v tlv.Float4) error {
+func (c *controlWriter) VisitDouble(v tlv.Double) error {
+	return c.write(doubleType)
+}
+
+func (w *payloadWriter) VisitSingle(v tlv.Single) error {
 	return wire.WriteInt(
 		w,
 		math.Float32bits(
@@ -28,18 +30,7 @@ func marshalFloat4(w io.Writer, v tlv.Float4) error {
 	)
 }
 
-func unmarshalFloat4(r *bytes.Reader) (tlv.Float4, error) {
-	n, err := wire.ReadInt[uint32](r)
-	if err != nil {
-		return 0, err
-	}
-
-	return tlv.Float4(
-		math.Float32frombits(n),
-	), nil
-}
-
-func marshalFloat8(w io.Writer, v tlv.Float8) error {
+func (w *payloadWriter) VisitDouble(v tlv.Double) error {
 	return wire.WriteInt(
 		w,
 		math.Float64bits(
@@ -48,13 +39,24 @@ func marshalFloat8(w io.Writer, v tlv.Float8) error {
 	)
 }
 
-func unmarshalFloat8(r *bytes.Reader) (tlv.Float8, error) {
+func unmarshalSingle(r *bytes.Reader) (tlv.Single, error) {
+	n, err := wire.ReadInt[uint32](r)
+	if err != nil {
+		return 0, err
+	}
+
+	return tlv.Single(
+		math.Float32frombits(n),
+	), nil
+}
+
+func unmarshalDouble(r *bytes.Reader) (tlv.Double, error) {
 	n, err := wire.ReadInt[uint64](r)
 	if err != nil {
 		return 0, err
 	}
 
-	return tlv.Float8(
+	return tlv.Double(
 		math.Float64frombits(n),
 	), nil
 }

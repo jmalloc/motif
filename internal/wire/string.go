@@ -29,15 +29,31 @@ func ReadString[
 	L constraints.Unsigned,
 	T ~string | ~[]byte,
 ](r io.Reader) (T, error) {
+	var v T
+	return v, AssignString[L](r, &v)
+}
+
+// AssignString reads an (octet or UTF-8) string from r and assigns it to *s.
+//
+// L is the type used to encode the string's length (in little-endian order).
+func AssignString[
+	L constraints.Unsigned,
+	T ~string | ~[]byte,
+](r io.Reader, s *T) error {
 	var data []byte
 
 	n, err := ReadInt[L](r)
 	if err != nil {
-		return T(data), err
+		return err
 	}
 
 	data = make([]byte, n)
-	_, err = io.ReadFull(r, data)
 
-	return T(data), err
+	if _, err = io.ReadFull(r, data); err != nil {
+		return err
+	}
+
+	*s = T(data)
+
+	return nil
 }

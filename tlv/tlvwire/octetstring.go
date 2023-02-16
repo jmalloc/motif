@@ -12,11 +12,34 @@ const (
 	octetString8Type = 0b000_10011
 )
 
-func (m *payloadWriter) VisitBytes1(v tlv.Bytes1) error { return wire.WriteString[uint8](m, v) }
-func (m *payloadWriter) VisitBytes2(v tlv.Bytes2) error { return wire.WriteString[uint16](m, v) }
-func (m *payloadWriter) VisitBytes4(v tlv.Bytes4) error { return wire.WriteString[uint32](m, v) }
-func (m *payloadWriter) VisitBytes8(v tlv.Bytes8) error { return wire.WriteString[uint64](m, v) }
-func (c *controlWriter) VisitBytes1(v tlv.Bytes1) error { return c.set(octetString1Type) }
-func (c *controlWriter) VisitBytes2(v tlv.Bytes2) error { return c.set(octetString2Type) }
-func (c *controlWriter) VisitBytes4(v tlv.Bytes4) error { return c.set(octetString4Type) }
-func (c *controlWriter) VisitBytes8(v tlv.Bytes8) error { return c.set(octetString8Type) }
+func (m *payloadWriter) VisitOctetString1(v tlv.OctetString1) error {
+	return wire.WriteString[uint8](m, v)
+}
+
+func (m *payloadWriter) VisitOctetString2(v tlv.OctetString2) error {
+	return wire.WriteString[uint16](m, v)
+}
+
+func (m *payloadWriter) VisitOctetString4(v tlv.OctetString4) error {
+	return wire.WriteString[uint32](m, v)
+}
+
+func (m *payloadWriter) VisitOctetString8(v tlv.OctetString8) error {
+	return wire.WriteString[uint64](m, v)
+}
+
+func (c *controlWriter) VisitOctetString1(v tlv.OctetString1) error {
+	return c.write(octetString1Type)
+}
+
+func (c *controlWriter) VisitOctetString2(v tlv.OctetString2) error {
+	return c.write(octetString2Type)
+}
+
+func (c *controlWriter) VisitOctetString4(v tlv.OctetString4) error {
+	return c.write(octetString4Type)
+}
+
+func (c *controlWriter) VisitOctetString8(v tlv.OctetString8) error {
+	return c.write(octetString8Type)
+}

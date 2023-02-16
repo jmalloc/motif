@@ -1,20 +1,35 @@
 package tlv
 
 type (
-	// Bytes1 is an octet-string with a 1 octet length.
-	Bytes1 []byte
+	// OctetString1 is an octet string with a length that can be represented by
+	// a 1 octet integer.
+	OctetString1 []byte
 
-	// Bytes2 is an octet-string with a 2 octet length.
-	Bytes2 []byte
+	// OctetString2 is an octet string with a length that can be represented by
+	// a 2 octet integer.
+	OctetString2 []byte
 
-	// Bytes4 is an octet-string with a 4 octet length.
-	Bytes4 []byte
+	// OctetString4 is an octet string with a length that can be represented by
+	// a 4 octet integer.
+	OctetString4 []byte
 
-	// Bytes8 is an octet-string with an 8 octet length.
-	Bytes8 []byte
+	// OctetString8 is an octet string with a length that can be represented by
+	// an 8 octet integer.
+	OctetString8 []byte
 )
 
-func (v Bytes1) acceptVisitor(vis ValueVisitor) error { return vis.VisitBytes1(v) }
-func (v Bytes2) acceptVisitor(vis ValueVisitor) error { return vis.VisitBytes2(v) }
-func (v Bytes4) acceptVisitor(vis ValueVisitor) error { return vis.VisitBytes4(v) }
-func (v Bytes8) acceptVisitor(vis ValueVisitor) error { return vis.VisitBytes8(v) }
+func (v OctetString1) acceptVisitor(vis ValueVisitor) error {
+	return vis.VisitOctetString1(v)
+}
+
+func (v OctetString2) acceptVisitor(vis ValueVisitor) error {
+	return vis.VisitOctetString2(v)
+}
+
+func (v OctetString4) acceptVisitor(vis ValueVisitor) error {
+	return vis.VisitOctetString4(v)
+}
+
+func (v OctetString8) acceptVisitor(vis ValueVisitor) error {
+	return vis.VisitOctetString8(v)
+}

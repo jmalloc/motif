@@ -15,35 +15,35 @@ var _ = Context("marshaling and unmarshaling", func() {
 		testScalar,
 		Entry(
 			"1 octet length, empty",
-			tlv.String1(""),
+			tlv.UTF8String1(""),
 			[]byte{0x0c, 0x00},
 		),
 		Entry(
 			"1 octet length, ASCII",
-			tlv.String1("Hello!"),
+			tlv.UTF8String1("Hello!"),
 			[]byte{0x0c, 0x06, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x21}),
 		Entry(
 			"1 octet length, UTF-8",
-			tlv.String1("Tschüs"),
+			tlv.UTF8String1("Tschüs"),
 			[]byte{0x0c, 0x07, 0x54, 0x73, 0x63, 0x68, 0xc3, 0xbc, 0x73},
 		),
 		Entry(
 			"2 octet length, empty",
-			tlv.String2(""),
+			tlv.UTF8String2(""),
 			[]byte{0x0d, 0x00, 0x00},
 		),
 		Entry(
 			"2 octet length, ASCII",
-			tlv.String2("Hello!"),
+			tlv.UTF8String2("Hello!"),
 			[]byte{0x0d, 0x06, 0x00, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x21}),
 		Entry(
 			"2 octet length, UTF-8",
-			tlv.String2("Tschüs"),
+			tlv.UTF8String2("Tschüs"),
 			[]byte{0x0d, 0x07, 0x00, 0x54, 0x73, 0x63, 0x68, 0xc3, 0xbc, 0x73},
 		),
 		Entry(
 			"2 octet length, length larger than 1 octet",
-			tlv.String2(strings.Repeat(" ", math.MaxUint8+1)),
+			tlv.UTF8String2(strings.Repeat(" ", math.MaxUint8+1)),
 			append(
 				[]byte{0x0d, 0x00, 0x01},
 				bytes.Repeat([]byte{' '}, math.MaxUint8+1)...,
@@ -51,21 +51,21 @@ var _ = Context("marshaling and unmarshaling", func() {
 		),
 		Entry(
 			"4 octet length, empty",
-			tlv.String4(""),
+			tlv.UTF8String4(""),
 			[]byte{0x0e, 0x00, 0x00, 0x00, 0x00},
 		),
 		Entry(
 			"4 octet length, ASCII",
-			tlv.String4("Hello!"),
+			tlv.UTF8String4("Hello!"),
 			[]byte{0x0e, 0x06, 0x00, 0x00, 0x00, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x21}),
 		Entry(
 			"4 octet length, UTF-8",
-			tlv.String4("Tschüs"),
+			tlv.UTF8String4("Tschüs"),
 			[]byte{0x0e, 0x07, 0x00, 0x00, 0x00, 0x54, 0x73, 0x63, 0x68, 0xc3, 0xbc, 0x73},
 		),
 		Entry(
 			"4 octet length, length larger than 2 octets",
-			tlv.String4(strings.Repeat(" ", math.MaxUint16+1)),
+			tlv.UTF8String4(strings.Repeat(" ", math.MaxUint16+1)),
 			append(
 				[]byte{0x0e, 0x00, 0x00, 0x01, 0x00},
 				bytes.Repeat([]byte{' '}, math.MaxUint16+1)...,
@@ -73,16 +73,16 @@ var _ = Context("marshaling and unmarshaling", func() {
 		),
 		Entry(
 			"8 octet length, empty",
-			tlv.String8(""),
+			tlv.UTF8String8(""),
 			[]byte{0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
 		),
 		Entry(
 			"8 octet length, ASCII",
-			tlv.String8("Hello!"),
+			tlv.UTF8String8("Hello!"),
 			[]byte{0x0f, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x21}),
 		Entry(
 			"8 octet length, UTF-8",
-			tlv.String8("Tschüs"),
+			tlv.UTF8String8("Tschüs"),
 			[]byte{0x0f, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x54, 0x73, 0x63, 0x68, 0xc3, 0xbc, 0x73},
 		),
 		// Note, we don't check for lengths larger than 4 octets because

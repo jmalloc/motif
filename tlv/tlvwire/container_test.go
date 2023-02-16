@@ -69,8 +69,8 @@ var _ = DescribeTable(
 			tlv.Signed1(42),
 			tlv.Signed4(-170000),
 			tlv.Struct(nil),
-			tlv.Float4(17.9),
-			tlv.String1("Hello!"),
+			tlv.Single(17.9),
+			tlv.UTF8String1("Hello!"),
 		},
 		[]byte{
 			0x16, 0x00, 0x2a, 0x02, 0xf0, 0x67, 0xfd, 0xff,

@@ -14,7 +14,18 @@ type (
 	Unsigned8 uint64
 )
 
-func (v Unsigned1) acceptVisitor(vis ValueVisitor) error { return vis.VisitUnsigned1(v) }
-func (v Unsigned2) acceptVisitor(vis ValueVisitor) error { return vis.VisitUnsigned2(v) }
-func (v Unsigned4) acceptVisitor(vis ValueVisitor) error { return vis.VisitUnsigned4(v) }
-func (v Unsigned8) acceptVisitor(vis ValueVisitor) error { return vis.VisitUnsigned8(v) }
+func (v Unsigned1) acceptVisitor(vis ValueVisitor) error {
+	return vis.VisitUnsigned1(v)
+}
+
+func (v Unsigned2) acceptVisitor(vis ValueVisitor) error {
+	return vis.VisitUnsigned2(v)
+}
+
+func (v Unsigned4) acceptVisitor(vis ValueVisitor) error {
+	return vis.VisitUnsigned4(v)
+}
+
+func (v Unsigned8) acceptVisitor(vis ValueVisitor) error {
+	return vis.VisitUnsigned8(v)
+}

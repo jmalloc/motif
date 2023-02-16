@@ -14,7 +14,18 @@ type (
 	Signed8 int64
 )
 
-func (v Signed1) acceptVisitor(vis ValueVisitor) error { return vis.VisitSigned1(v) }
-func (v Signed2) acceptVisitor(vis ValueVisitor) error { return vis.VisitSigned2(v) }
-func (v Signed4) acceptVisitor(vis ValueVisitor) error { return vis.VisitSigned4(v) }
-func (v Signed8) acceptVisitor(vis ValueVisitor) error { return vis.VisitSigned8(v) }
+func (v Signed1) acceptVisitor(vis ValueVisitor) error {
+	return vis.VisitSigned1(v)
+}
+
+func (v Signed2) acceptVisitor(vis ValueVisitor) error {
+	return vis.VisitSigned2(v)
+}
+
+func (v Signed4) acceptVisitor(vis ValueVisitor) error {
+	return vis.VisitSigned4(v)
+}
+
+func (v Signed8) acceptVisitor(vis ValueVisitor) error {
+	return vis.VisitSigned8(v)
+}

@@ -13,4 +13,6 @@ const (
 	True Bool = true
 )
 
-func (v Bool) acceptVisitor(vis ValueVisitor) error { return vis.VisitBool(v) }
+func (v Bool) acceptVisitor(vis ValueVisitor) error {
+	return vis.VisitBool(v)
+}

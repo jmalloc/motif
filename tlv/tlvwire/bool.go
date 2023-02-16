@@ -7,13 +7,14 @@ const (
 	boolTrueType  = 0b000_01001
 )
 
-func (w *controlWriter) VisitBool(v tlv.Bool) error { return w.set(boolType(v)) }
-func (w *payloadWriter) VisitBool(v tlv.Bool) error { return nil }
-
-func boolType(v tlv.Bool) byte {
+func (w *controlWriter) VisitBool(v tlv.Bool) error {
 	if v {
-		return boolTrueType
+		return w.write(boolTrueType)
 	}
 
-	return boolFalseType
+	return w.write(boolFalseType)
+}
+
+func (w *payloadWriter) VisitBool(v tlv.Bool) error {
+	return nil
 }

@@ -20,29 +20,29 @@ const (
 )
 
 func (c *controlWriter) VisitAnonymousTag() error {
-	return c.set(anonymousTagForm)
+	return c.write(anonymousTagForm)
 }
 
 func (c *controlWriter) VisitContextSpecificTag(t tlv.ContextSpecificTag) error {
-	return c.set(contextSpecificTagForm)
+	return c.write(contextSpecificTagForm)
 }
 func (c *controlWriter) VisitCommonProfileTag2(t tlv.CommonProfileTag2) error {
-	return c.set(commonProfileTag2Form)
+	return c.write(commonProfileTag2Form)
 }
 func (c *controlWriter) VisitCommonProfileTag4(t tlv.CommonProfileTag4) error {
-	return c.set(commonProfileTag4Form)
+	return c.write(commonProfileTag4Form)
 }
 func (c *controlWriter) VisitImplicitProfileTag2(t tlv.ImplicitProfileTag2) error {
-	return c.set(implicitProfileTag2Form)
+	return c.write(implicitProfileTag2Form)
 }
 func (c *controlWriter) VisitImplicitProfileTag4(t tlv.ImplicitProfileTag4) error {
-	return c.set(implicitProfileTag4Form)
+	return c.write(implicitProfileTag4Form)
 }
 func (c *controlWriter) VisitFullyQualifiedTag6(t tlv.FullyQualifiedTag6) error {
-	return c.set(fullyQualifiedTag6Form)
+	return c.write(fullyQualifiedTag6Form)
 }
 func (c *controlWriter) VisitFullyQualifiedTag8(t tlv.FullyQualifiedTag8) error {
-	return c.set(fullyQualifiedTag8Form)
+	return c.write(fullyQualifiedTag8Form)
 }
 
 func (w *payloadWriter) VisitAnonymousTag() error {

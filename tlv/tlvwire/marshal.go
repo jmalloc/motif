@@ -63,7 +63,7 @@ type (
 	payloadWriter struct{ io.Writer }
 )
 
-func (w *controlWriter) set(v byte) error {
+func (w *controlWriter) write(v byte) error {
 	*w |= controlWriter(v)
 	return nil
 }
@@ -130,10 +130,10 @@ func unmarshalValue(r *bytes.Reader, c byte) (tlv.Value, error) {
 		return tlv.False, nil
 	case boolTrueType:
 		return tlv.True, nil
-	case float4Type:
-		return unmarshalFloat4(r)
-	case float8Type:
-		return unmarshalFloat8(r)
+	case singleType:
+		return unmarshalSingle(r)
+	case doubleType:
+		return unmarshalDouble(r)
 	case nullType:
 		return tlv.Null, nil
 	case structType:
@@ -143,21 +143,21 @@ func unmarshalValue(r *bytes.Reader, c byte) (tlv.Value, error) {
 	case listType:
 		return unmarshalList(r)
 	case utf8String1Type:
-		return wire.ReadString[uint8, tlv.String1](r)
+		return wire.ReadString[uint8, tlv.UTF8String1](r)
 	case utf8String2Type:
-		return wire.ReadString[uint16, tlv.String2](r)
+		return wire.ReadString[uint16, tlv.UTF8String2](r)
 	case utf8String4Type:
-		return wire.ReadString[uint32, tlv.String4](r)
+		return wire.ReadString[uint32, tlv.UTF8String4](r)
 	case utf8String8Type:
-		return wire.ReadString[uint64, tlv.String8](r)
+		return wire.ReadString[uint64, tlv.UTF8String8](r)
 	case octetString1Type:
-		return wire.ReadString[uint8, tlv.Bytes1](r)
+		return wire.ReadString[uint8, tlv.OctetString1](r)
 	case octetString2Type:
-		return wire.ReadString[uint16, tlv.Bytes2](r)
+		return wire.ReadString[uint16, tlv.OctetString2](r)
 	case octetString4Type:
-		return wire.ReadString[uint32, tlv.Bytes4](r)
+		return wire.ReadString[uint32, tlv.OctetString4](r)
 	case octetString8Type:
-		return wire.ReadString[uint64, tlv.Bytes8](r)
+		return wire.ReadString[uint64, tlv.OctetString8](r)
 	default:
 		return nil, fmt.Errorf("unrecognized type (%x)", c&typeMask)
 	}

@@ -19,18 +19,43 @@ var (
 	endOfContainerBuffer = []byte{endOfContainer}
 )
 
-func (w *controlWriter) VisitStruct(v tlv.Struct) error { return w.set(structType) }
-func (w *controlWriter) VisitArray(v tlv.Array) error   { return w.set(arrayType) }
-func (w *controlWriter) VisitList(v tlv.List) error     { return w.set(listType) }
-func (w *payloadWriter) VisitStruct(v tlv.Struct) error { return marshalStruct(w, v) }
-func (w *payloadWriter) VisitList(v tlv.List) error     { return marshalList(w, v) }
-func (w *payloadWriter) VisitArray(v tlv.Array) error   { return marshalArray(w, v) }
+func (w *controlWriter) VisitStruct(v tlv.Struct) error {
+	return w.write(structType)
+}
 
-func marshalStruct(w io.Writer, v tlv.Struct) error {
+func (w *controlWriter) VisitArray(v tlv.Array) error {
+	return w.write(arrayType)
+}
+
+func (w *controlWriter) VisitList(v tlv.List) error {
+	return w.write(listType)
+}
+
+func (w *payloadWriter) VisitStruct(v tlv.Struct) error {
 	return marshalContainer(
 		w,
 		v,
 		func(m tlv.StructMember) (tlv.Tag, tlv.Value) {
+			return m.T, m.V
+		},
+	)
+}
+
+func (w *payloadWriter) VisitArray(v tlv.Array) error {
+	return marshalContainer(
+		w,
+		v,
+		func(m tlv.Value) (tlv.Tag, tlv.Value) {
+			return tlv.AnonymousTag, m
+		},
+	)
+}
+
+func (w *payloadWriter) VisitList(v tlv.List) error {
+	return marshalContainer(
+		w,
+		v,
+		func(m tlv.ListMember) (tlv.Tag, tlv.Value) {
 			return m.T, m.V
 		},
 	)
@@ -48,16 +73,6 @@ func unmarshalStruct(r *bytes.Reader) (tlv.Struct, error) {
 	)
 }
 
-func marshalArray(w io.Writer, v tlv.Array) error {
-	return marshalContainer(
-		w,
-		v,
-		func(m tlv.Value) (tlv.Tag, tlv.Value) {
-			return tlv.AnonymousTag, m
-		},
-	)
-}
-
 func unmarshalArray(r *bytes.Reader) (tlv.Array, error) {
 	return unmarshalContainer[tlv.Array](
 		r,
@@ -66,16 +81,6 @@ func unmarshalArray(r *bytes.Reader) (tlv.Array, error) {
 				return v, nil
 			}
 			return nil, errors.New("array members must be anonymous")
-		},
-	)
-}
-
-func marshalList(w io.Writer, v tlv.List) error {
-	return marshalContainer(
-		w,
-		v,
-		func(m tlv.ListMember) (tlv.Tag, tlv.Value) {
-			return m.T, m.V
 		},
 	)
 }

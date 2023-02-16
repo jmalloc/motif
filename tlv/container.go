@@ -23,6 +23,14 @@ type (
 	}
 )
 
-func (v Struct) acceptVisitor(vis ValueVisitor) error { return vis.VisitStruct(v) }
-func (v Array) acceptVisitor(vis ValueVisitor) error  { return vis.VisitArray(v) }
-func (v List) acceptVisitor(vis ValueVisitor) error   { return vis.VisitList(v) }
+func (v Struct) acceptVisitor(vis ValueVisitor) error {
+	return vis.VisitStruct(v)
+}
+
+func (v Array) acceptVisitor(vis ValueVisitor) error {
+	return vis.VisitArray(v)
+}
+
+func (v List) acceptVisitor(vis ValueVisitor) error {
+	return vis.VisitList(v)
+}

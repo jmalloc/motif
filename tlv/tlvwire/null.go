@@ -4,5 +4,10 @@ const (
 	nullType = 0b000_10100
 )
 
-func (w *controlWriter) VisitNull() error { return w.set(nullType) }
-func (w *payloadWriter) VisitNull() error { return nil }
+func (w *controlWriter) VisitNull() error {
+	return w.write(nullType)
+}
+
+func (w *payloadWriter) VisitNull() error {
+	return nil
+}

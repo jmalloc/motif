@@ -9,4 +9,6 @@ var (
 	Null null
 )
 
-func (null) acceptVisitor(vis ValueVisitor) error { return vis.VisitNull() }
+func (null) acceptVisitor(vis ValueVisitor) error {
+	return vis.VisitNull()
+}

@@ -77,14 +77,37 @@ type (
 	}
 )
 
-func (anonymousTag) acceptVisitor(v TagVisitor) error          { return v.VisitAnonymousTag() }
-func (t ContextSpecificTag) acceptVisitor(v TagVisitor) error  { return v.VisitContextSpecificTag(t) }
-func (t CommonProfileTag2) acceptVisitor(v TagVisitor) error   { return v.VisitCommonProfileTag2(t) }
-func (t CommonProfileTag4) acceptVisitor(v TagVisitor) error   { return v.VisitCommonProfileTag4(t) }
-func (t ImplicitProfileTag2) acceptVisitor(v TagVisitor) error { return v.VisitImplicitProfileTag2(t) }
-func (t ImplicitProfileTag4) acceptVisitor(v TagVisitor) error { return v.VisitImplicitProfileTag4(t) }
-func (t FullyQualifiedTag6) acceptVisitor(v TagVisitor) error  { return v.VisitFullyQualifiedTag6(t) }
-func (t FullyQualifiedTag8) acceptVisitor(v TagVisitor) error  { return v.VisitFullyQualifiedTag8(t) }
+func (anonymousTag) acceptVisitor(vis TagVisitor) error {
+	return vis.VisitAnonymousTag()
+}
+
+func (t ContextSpecificTag) acceptVisitor(vis TagVisitor) error {
+	return vis.VisitContextSpecificTag(t)
+}
+
+func (t CommonProfileTag2) acceptVisitor(vis TagVisitor) error {
+	return vis.VisitCommonProfileTag2(t)
+}
+
+func (t CommonProfileTag4) acceptVisitor(vis TagVisitor) error {
+	return vis.VisitCommonProfileTag4(t)
+}
+
+func (t ImplicitProfileTag2) acceptVisitor(vis TagVisitor) error {
+	return vis.VisitImplicitProfileTag2(t)
+}
+
+func (t ImplicitProfileTag4) acceptVisitor(vis TagVisitor) error {
+	return vis.VisitImplicitProfileTag4(t)
+}
+
+func (t FullyQualifiedTag6) acceptVisitor(vis TagVisitor) error {
+	return vis.VisitFullyQualifiedTag6(t)
+}
+
+func (t FullyQualifiedTag8) acceptVisitor(vis TagVisitor) error {
+	return vis.VisitFullyQualifiedTag8(t)
+}
 
 func (ContextSpecificTag) isNotAnonymous()  {}
 func (CommonProfileTag2) isNotAnonymous()   {}
