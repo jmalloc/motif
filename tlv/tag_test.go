@@ -10,7 +10,7 @@ var _ = Describe("func Marshal() and Unmarshal()", func() {
 	DescribeTable(
 		"it encodes tags correctly",
 		func(t Tag, data []byte) {
-			m := Root{
+			m := Element{
 				T: t,
 				V: Signed1(0),
 			}
@@ -18,7 +18,7 @@ var _ = Describe("func Marshal() and Unmarshal()", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(d).To(Equal(data))
 
-			u := Root{}
+			u := Element{}
 			err = u.UnmarshalBinary(d)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(u).To(Equal(m))

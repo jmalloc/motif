@@ -6,7 +6,7 @@ import (
 )
 
 func testScalarEncoding(v Value, data []byte) {
-	m := Root{
+	m := Element{
 		T: AnonymousTag,
 		V: v,
 	}
@@ -14,7 +14,7 @@ func testScalarEncoding(v Value, data []byte) {
 	Expect(err).ShouldNot(HaveOccurred())
 	Expect(d).To(Equal(data))
 
-	u := Root{}
+	u := Element{}
 	err = u.UnmarshalBinary(d)
 	Expect(err).ShouldNot(HaveOccurred())
 	Expect(u).To(Equal(m))
@@ -27,7 +27,7 @@ func testContainerEncoding[
 	},
 	E any,
 ](v T, data []byte) {
-	m := Root{
+	m := Element{
 		T: AnonymousTag,
 		V: v,
 	}
@@ -35,7 +35,7 @@ func testContainerEncoding[
 	Expect(err).ShouldNot(HaveOccurred())
 	Expect(data).To(Equal(data))
 
-	u := Root{}
+	u := Element{}
 	err = u.UnmarshalBinary(d)
 	Expect(err).ShouldNot(HaveOccurred())
 	Expect(u.T).To(Equal(m.T))

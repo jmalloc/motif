@@ -2,20 +2,20 @@ package tlv
 
 import "bytes"
 
-// Root is the element at the root of a TLV element tree.
-type Root struct {
+// Element is a TLV element.
+type Element struct {
 	T Tag
 	V Value
 }
 
 // MarshalBinary returns the binary encoding of the element.
-func (r Root) MarshalBinary() ([]byte, error) {
-	t := r.T
+func (e Element) MarshalBinary() ([]byte, error) {
+	t := e.T
 	if t == nil {
 		t = AnonymousTag
 	}
 
-	v := r.V
+	v := e.V
 	if v == nil {
 		v = Null
 	}
@@ -29,14 +29,14 @@ func (r Root) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary populates the element from its binary encoding.
-func (r *Root) UnmarshalBinary(data []byte) error {
+func (e *Element) UnmarshalBinary(data []byte) error {
 	t, v, err := unmarshal(bytes.NewReader(data))
 	if err != nil {
 		return err
 	}
 
-	r.T = t
-	r.V = v
+	e.T = t
+	e.V = v
 
 	return nil
 }
