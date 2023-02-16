@@ -14,13 +14,3 @@ type ListMember struct {
 	T Tag
 	V Value
 }
-
-// Tag returns the element's tag.
-func (m ListMember) Tag() Tag {
-	return m.T
-}
-
-// Value returns the element's value.
-func (m ListMember) Value() Value {
-	return m.V
-}

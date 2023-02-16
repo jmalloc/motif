@@ -1,31 +1,14 @@
 package tlv_test
 
 import (
-	"bytes"
-
 	. "github.com/jmalloc/motif/tlv"
 	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("func Marshal()", func() {
+var _ = Describe("func Marshal() and Unmarshal()", func() {
 	DescribeTable(
 		"it encodes arrays correctly",
-		func(expectValue Array, expectData []byte) {
-			data := &bytes.Buffer{}
-			err := Marshal(data, Root{V: expectValue})
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(data.Bytes()).To(Equal(expectData))
-
-			e, err := Unmarshal(data)
-			Expect(err).ShouldNot(HaveOccurred())
-
-			if len(expectValue) == 0 {
-				Expect(e.Value()).To(HaveLen(0))
-			} else {
-				Expect(e.Value()).To(Equal(expectValue))
-			}
-		},
+		testContainerEncoding[Array],
 		Entry(
 			"nil array",
 			Array(nil),

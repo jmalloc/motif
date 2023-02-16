@@ -1,25 +1,27 @@
 package tlv_test
 
 import (
-	"bytes"
-
 	. "github.com/jmalloc/motif/tlv"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("func Marshal()", func() {
+var _ = Describe("func Marshal() and Unmarshal()", func() {
 	DescribeTable(
 		"it encodes tags correctly",
-		func(expectTag Tag, expectData []byte) {
-			data := &bytes.Buffer{}
-			err := Marshal(data, Root{T: expectTag, V: Signed1(0)})
+		func(t Tag, data []byte) {
+			m := Root{
+				T: t,
+				V: Signed1(0),
+			}
+			d, err := m.MarshalBinary()
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(data.Bytes()).To(Equal(expectData))
+			Expect(d).To(Equal(data))
 
-			e, err := Unmarshal(data)
+			u := Root{}
+			err = u.UnmarshalBinary(d)
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(e.Value()).To(Equal(Signed1(0)))
+			Expect(u).To(Equal(m))
 		},
 		Entry(
 			"anonymous",

@@ -1,28 +1,15 @@
 package tlv
 
 import (
-	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
-	"io"
 	"math"
 
 	"github.com/jmalloc/motif/internal/wire"
 )
 
-// Unmarshal returns the element represented by the given data.
-func Unmarshal(r io.Reader) (Element, error) {
-	buf := bufio.NewReader(r)
-
-	t, v, err := unmarshal(buf)
-	if err != nil {
-		return nil, err
-	}
-
-	return Root{t, v}, nil
-}
-
-func unmarshal(r *bufio.Reader) (Tag, Value, error) {
+func unmarshal(r *bytes.Reader) (Tag, Value, error) {
 	c, err := r.ReadByte()
 	if err != nil {
 		return nil, nil, err
@@ -41,7 +28,7 @@ func unmarshal(r *bufio.Reader) (Tag, Value, error) {
 	return t, v, nil
 }
 
-func unmarshalValue(r *bufio.Reader, c byte) (Value, error) {
+func unmarshalValue(r *bytes.Reader, c byte) (Value, error) {
 	switch c & typeMask {
 	case signed1Type:
 		return wire.ReadInt[Signed1](r)
@@ -98,7 +85,7 @@ func unmarshalValue(r *bufio.Reader, c byte) (Value, error) {
 	}
 }
 
-func unmarshalStruct(r *bufio.Reader) (Struct, error) {
+func unmarshalStruct(r *bytes.Reader) (Struct, error) {
 	var s Struct
 
 	return s, readMembers(
@@ -115,7 +102,7 @@ func unmarshalStruct(r *bufio.Reader) (Struct, error) {
 	)
 }
 
-func unmarshalArray(r *bufio.Reader) (Array, error) {
+func unmarshalArray(r *bytes.Reader) (Array, error) {
 	var a Array
 
 	return a, readMembers(
@@ -131,7 +118,7 @@ func unmarshalArray(r *bufio.Reader) (Array, error) {
 	)
 }
 
-func unmarshalList(r *bufio.Reader) (List, error) {
+func unmarshalList(r *bytes.Reader) (List, error) {
 	var l List
 
 	return l, readMembers(
@@ -143,7 +130,7 @@ func unmarshalList(r *bufio.Reader) (List, error) {
 	)
 }
 
-func unmarshalTag(r *bufio.Reader, c byte) (Tag, error) {
+func unmarshalTag(r *bytes.Reader, c byte) (Tag, error) {
 	switch c & tagFormMask {
 	default: // anonymous
 		return AnonymousTag, nil
@@ -164,7 +151,7 @@ func unmarshalTag(r *bufio.Reader, c byte) (Tag, error) {
 	}
 }
 
-func unmarshalFullyQualifiedTag6(r *bufio.Reader) (FullyQualifiedTag6, error) {
+func unmarshalFullyQualifiedTag6(r *bytes.Reader) (FullyQualifiedTag6, error) {
 	var (
 		t   FullyQualifiedTag6
 		err error
@@ -188,7 +175,7 @@ func unmarshalFullyQualifiedTag6(r *bufio.Reader) (FullyQualifiedTag6, error) {
 	return t, nil
 }
 
-func unmarshalFullyQualifiedTag8(r *bufio.Reader) (FullyQualifiedTag8, error) {
+func unmarshalFullyQualifiedTag8(r *bytes.Reader) (FullyQualifiedTag8, error) {
 	var (
 		t   FullyQualifiedTag8
 		err error
@@ -213,7 +200,7 @@ func unmarshalFullyQualifiedTag8(r *bufio.Reader) (FullyQualifiedTag8, error) {
 }
 
 func readMembers(
-	r *bufio.Reader,
+	r *bytes.Reader,
 	fn func(Tag, Value) error,
 ) error {
 	for {

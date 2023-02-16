@@ -7,22 +7,12 @@ import (
 
 	. "github.com/jmalloc/motif/tlv"
 	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("func Marshal()", func() {
+var _ = Describe("func Marshal() and Unmarshal()", func() {
 	DescribeTable(
 		"it encodes/decodes UTF-8 strings correctly",
-		func(expectValue Value, expectData []byte) {
-			data := &bytes.Buffer{}
-			err := Marshal(data, Root{V: expectValue})
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(data.Bytes()).To(Equal(expectData))
-
-			e, err := Unmarshal(data)
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(e.Value()).To(Equal(expectValue))
-		},
+		testScalarEncoding,
 		Entry(
 			"1 octet length, empty",
 			String1(""),

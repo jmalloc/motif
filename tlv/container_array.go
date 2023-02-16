@@ -13,13 +13,3 @@ func (a Array) AcceptVisitor(v ValueVisitor) error {
 type ArrayMember struct {
 	V Value
 }
-
-// Tag returns the element's tag.
-func (m ArrayMember) Tag() Tag {
-	return AnonymousTag
-}
-
-// Value returns the element's value.
-func (m ArrayMember) Value() Value {
-	return m.V
-}

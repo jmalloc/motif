@@ -7,29 +7,29 @@ import (
 	"github.com/jmalloc/motif/internal/wire"
 )
 
-// Marshal returns the binary representation of e.
-func Marshal(w io.Writer, e Element) error {
+// marshal returns the binary representation of an element consisting of t and v.
+func marshal(w io.Writer, t Tag, v Value) error {
 	c := &controlOctetBuilder{}
 
-	if err := e.Tag().AcceptVisitor(c); err != nil {
+	if err := t.AcceptVisitor(c); err != nil {
 		return err
 	}
 
-	if err := e.Value().AcceptVisitor(c); err != nil {
+	if err := v.AcceptVisitor(c); err != nil {
 		return err
 	}
 
-	if _, err := w.Write([]byte{c.Value}); err != nil {
+	if err := wire.WriteInt(w, c.Value); err != nil {
 		return err
 	}
 
 	m := marshaler{w}
 
-	if err := e.Tag().AcceptVisitor(m); err != nil {
+	if err := t.AcceptVisitor(m); err != nil {
 		return err
 	}
 
-	if err := e.Value().AcceptVisitor(m); err != nil {
+	if err := v.AcceptVisitor(m); err != nil {
 		return err
 	}
 
@@ -95,8 +95,8 @@ func (m marshaler) VisitNull() error {
 }
 
 func (m marshaler) VisitStruct(s Struct) error {
-	for _, x := range s {
-		if err := Marshal(m, x); err != nil {
+	for _, e := range s {
+		if err := marshal(m, e.T, e.V); err != nil {
 			return err
 		}
 	}
@@ -106,8 +106,8 @@ func (m marshaler) VisitStruct(s Struct) error {
 }
 
 func (m marshaler) VisitArray(a Array) error {
-	for _, x := range a {
-		if err := Marshal(m, x); err != nil {
+	for _, e := range a {
+		if err := marshal(m, AnonymousTag, e.V); err != nil {
 			return err
 		}
 	}
@@ -117,8 +117,8 @@ func (m marshaler) VisitArray(a Array) error {
 }
 
 func (m marshaler) VisitList(l List) error {
-	for _, x := range l {
-		if err := Marshal(m, x); err != nil {
+	for _, e := range l {
+		if err := marshal(m, e.T, e.V); err != nil {
 			return err
 		}
 	}
