@@ -112,7 +112,7 @@ func unmarshalArray(r *bytes.Reader) (Array, error) {
 				return errors.New("array members must be anonymous")
 			}
 
-			a = append(a, ArrayMember{v})
+			a = append(a, v)
 			return nil
 		},
 	)

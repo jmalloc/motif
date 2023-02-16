@@ -22,11 +22,11 @@ var _ = Describe("func Marshal() and Unmarshal()", func() {
 		Entry(
 			"signed integer members, 1-octet values, [0, 1, 2, 3, 4]",
 			Array{
-				{Signed1(0)},
-				{Signed1(1)},
-				{Signed1(2)},
-				{Signed1(3)},
-				{Signed1(4)},
+				Signed1(0),
+				Signed1(1),
+				Signed1(2),
+				Signed1(3),
+				Signed1(4),
 			},
 			[]byte{
 				0x16, 0x00, 0x00, 0x00, 0x01, 0x00, 0x02, 0x00,
@@ -36,11 +36,11 @@ var _ = Describe("func Marshal() and Unmarshal()", func() {
 		Entry(
 			`mix of element types, [42, -170000, {}, 17.9, "Hello!"]`,
 			Array{
-				{Signed1(42)},
-				{Signed4(-170000)},
-				{Struct(nil)},
-				{Float4(17.9)},
-				{String1("Hello!")},
+				Signed1(42),
+				Signed4(-170000),
+				Struct(nil),
+				Float4(17.9),
+				String1("Hello!"),
 			},
 			[]byte{
 				0x16, 0x00, 0x2a, 0x02, 0xf0, 0x67, 0xfd, 0xff,

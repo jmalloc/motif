@@ -106,8 +106,8 @@ func (m marshaler) VisitStruct(s Struct) error {
 }
 
 func (m marshaler) VisitArray(a Array) error {
-	for _, e := range a {
-		if err := marshal(m, AnonymousTag, e.V); err != nil {
+	for _, v := range a {
+		if err := marshal(m, AnonymousTag, v); err != nil {
 			return err
 		}
 	}
