@@ -10,8 +10,12 @@ type (
 
 // AcceptVisitor dispatches to the method on v that corresponds to the concrete
 // type the method's receiver.
-func (f Float4) AcceptVisitor(v ValueVisitor) { v.VisitFloat4(f) }
+func (f Float4) AcceptVisitor(v ValueVisitor) error {
+	return v.VisitFloat4(f)
+}
 
 // AcceptVisitor dispatches to the method on v that corresponds to the concrete
 // type the method's receiver.
-func (f Float8) AcceptVisitor(v ValueVisitor) { v.VisitFloat8(f) }
+func (f Float8) AcceptVisitor(v ValueVisitor) error {
+	return v.VisitFloat8(f)
+}

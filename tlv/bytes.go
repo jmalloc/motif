@@ -16,16 +16,24 @@ type (
 
 // AcceptVisitor dispatches to the method on v that corresponds to the concrete
 // type the method's receiver.
-func (b Bytes1) AcceptVisitor(v ValueVisitor) { v.VisitBytes1(b) }
+func (b Bytes1) AcceptVisitor(v ValueVisitor) error {
+	return v.VisitBytes1(b)
+}
 
 // AcceptVisitor dispatches to the method on v that corresponds to the concrete
 // type the method's receiver.
-func (b Bytes2) AcceptVisitor(v ValueVisitor) { v.VisitBytes2(b) }
+func (b Bytes2) AcceptVisitor(v ValueVisitor) error {
+	return v.VisitBytes2(b)
+}
 
 // AcceptVisitor dispatches to the method on v that corresponds to the concrete
 // type the method's receiver.
-func (b Bytes4) AcceptVisitor(v ValueVisitor) { v.VisitBytes4(b) }
+func (b Bytes4) AcceptVisitor(v ValueVisitor) error {
+	return v.VisitBytes4(b)
+}
 
 // AcceptVisitor dispatches to the method on v that corresponds to the concrete
 // type the method's receiver.
-func (b Bytes8) AcceptVisitor(v ValueVisitor) { v.VisitBytes8(b) }
+func (b Bytes8) AcceptVisitor(v ValueVisitor) error {
+	return v.VisitBytes8(b)
+}

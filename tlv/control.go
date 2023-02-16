@@ -37,9 +37,9 @@ const (
 	octetString2Type = 0b000_10001
 	octetString4Type = 0b000_10010
 	octetString8Type = 0b000_10011
-)
 
-const (
+	endOfContainer = 0b000_11000
+
 	anonymousTagForm        = 0b000_00000
 	contextSpecificTagForm  = 0b001_00000
 	commonProfileTag2Form   = 0b010_00000
@@ -50,4 +50,140 @@ const (
 	fullyQualifiedTag8Form  = 0b111_00000
 )
 
-const endOfContainer = 0b000_11000
+// controlOctetBuilder is an implementation of ValueVisitor and TagVisitor that
+// builds a control octet that describes the tag form and element type.
+type controlOctetBuilder struct {
+	Value byte
+}
+
+func (c *controlOctetBuilder) update(v byte) error {
+	c.Value |= v
+	return nil
+}
+
+func (c *controlOctetBuilder) VisitSigned1(s Signed1) error {
+	return c.update(signed1Type)
+}
+
+func (c *controlOctetBuilder) VisitSigned2(s Signed2) error {
+	return c.update(signed2Type)
+}
+
+func (c *controlOctetBuilder) VisitSigned4(s Signed4) error {
+	return c.update(signed4Type)
+}
+
+func (c *controlOctetBuilder) VisitSigned8(s Signed8) error {
+	return c.update(signed8Type)
+}
+
+func (c *controlOctetBuilder) VisitUnsigned1(u Unsigned1) error {
+	return c.update(unsigned1Type)
+}
+
+func (c *controlOctetBuilder) VisitUnsigned2(u Unsigned2) error {
+	return c.update(unsigned2Type)
+}
+
+func (c *controlOctetBuilder) VisitUnsigned4(u Unsigned4) error {
+	return c.update(unsigned4Type)
+}
+
+func (c *controlOctetBuilder) VisitUnsigned8(u Unsigned8) error {
+	return c.update(unsigned8Type)
+}
+
+func (c *controlOctetBuilder) VisitBool(b Bool) error {
+	if b {
+		return c.update(boolTrueType)
+	}
+	return c.update(boolFalseType)
+}
+
+func (c *controlOctetBuilder) VisitFloat4(f Float4) error {
+	return c.update(float4Type)
+}
+
+func (c *controlOctetBuilder) VisitFloat8(f Float8) error {
+	return c.update(float8Type)
+}
+
+func (c *controlOctetBuilder) VisitNull() error {
+	return c.update(nullType)
+}
+
+func (c *controlOctetBuilder) VisitStruct(s Struct) error {
+	return c.update(structType)
+}
+
+func (c *controlOctetBuilder) VisitArray(a Array) error {
+	return c.update(arrayType)
+}
+
+func (c *controlOctetBuilder) VisitList(l List) error {
+	return c.update(listType)
+}
+
+func (c *controlOctetBuilder) VisitString1(s String1) error {
+	return c.update(utf8String1Type)
+}
+
+func (c *controlOctetBuilder) VisitString2(s String2) error {
+	return c.update(utf8String2Type)
+}
+
+func (c *controlOctetBuilder) VisitString4(s String4) error {
+	return c.update(utf8String4Type)
+}
+
+func (c *controlOctetBuilder) VisitString8(s String8) error {
+	return c.update(utf8String8Type)
+}
+
+func (c *controlOctetBuilder) VisitBytes1(b Bytes1) error {
+	return c.update(octetString1Type)
+}
+
+func (c *controlOctetBuilder) VisitBytes2(b Bytes2) error {
+	return c.update(octetString2Type)
+}
+
+func (c *controlOctetBuilder) VisitBytes4(b Bytes4) error {
+	return c.update(octetString4Type)
+}
+
+func (c *controlOctetBuilder) VisitBytes8(b Bytes8) error {
+	return c.update(octetString8Type)
+}
+
+func (c *controlOctetBuilder) VisitAnonymousTag() error {
+	return c.update(anonymousTagForm)
+}
+
+func (c *controlOctetBuilder) VisitContextSpecificTag(t ContextSpecificTag) error {
+	return c.update(contextSpecificTagForm)
+}
+
+func (c *controlOctetBuilder) VisitCommonProfileTag2(t CommonProfileTag2) error {
+	return c.update(commonProfileTag2Form)
+}
+
+func (c *controlOctetBuilder) VisitCommonProfileTag4(t CommonProfileTag4) error {
+	return c.update(commonProfileTag4Form)
+}
+
+func (c *controlOctetBuilder) VisitImplicitProfileTag2(t ImplicitProfileTag2) error {
+	return c.update(implicitProfileTag2Form)
+}
+
+func (c *controlOctetBuilder) VisitImplicitProfileTag4(t ImplicitProfileTag4) error {
+	return c.update(implicitProfileTag4Form)
+}
+
+func (c *controlOctetBuilder) VisitFullyQualifiedTag6(t FullyQualifiedTag6) error {
+	return c.update(fullyQualifiedTag6Form)
+}
+
+func (c *controlOctetBuilder) VisitFullyQualifiedTag8(t FullyQualifiedTag8) error {
+	return c.update(fullyQualifiedTag8Form)
+}

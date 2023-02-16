@@ -13,6 +13,6 @@ type Bool bool
 
 // AcceptVisitor dispatches to the method on v that corresponds to the concrete
 // type the method's receiver.
-func (b Bool) AcceptVisitor(v ValueVisitor) {
-	v.VisitBool(b)
+func (b Bool) AcceptVisitor(v ValueVisitor) error {
+	return v.VisitBool(b)
 }

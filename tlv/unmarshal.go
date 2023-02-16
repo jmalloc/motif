@@ -1,33 +1,28 @@
 package tlv
 
 import (
-	"bytes"
+	"bufio"
 	"errors"
 	"fmt"
 	"io"
 	"math"
-	"unsafe"
 
-	"golang.org/x/exp/constraints"
+	"github.com/jmalloc/motif/internal/wire"
 )
 
 // Unmarshal returns the element represented by the given data.
-func Unmarshal(data []byte) (Element, error) {
-	r := bytes.NewReader(data)
+func Unmarshal(r io.Reader) (Element, error) {
+	buf := bufio.NewReader(r)
 
-	t, v, err := unmarshal(r)
+	t, v, err := unmarshal(buf)
 	if err != nil {
 		return nil, err
-	}
-
-	if r.Len() != 0 {
-		return nil, errors.New("unexpected data remaining")
 	}
 
 	return Root{t, v}, nil
 }
 
-func unmarshal(r *bytes.Reader) (Tag, Value, error) {
+func unmarshal(r *bufio.Reader) (Tag, Value, error) {
 	c, err := r.ReadByte()
 	if err != nil {
 		return nil, nil, err
@@ -46,33 +41,33 @@ func unmarshal(r *bytes.Reader) (Tag, Value, error) {
 	return t, v, nil
 }
 
-func unmarshalValue(r *bytes.Reader, c byte) (Value, error) {
+func unmarshalValue(r *bufio.Reader, c byte) (Value, error) {
 	switch c & typeMask {
 	case signed1Type:
-		return readInt[Signed1](r)
+		return wire.ReadInt[Signed1](r)
 	case signed2Type:
-		return readInt[Signed2](r)
+		return wire.ReadInt[Signed2](r)
 	case signed4Type:
-		return readInt[Signed4](r)
+		return wire.ReadInt[Signed4](r)
 	case signed8Type:
-		return readInt[Signed8](r)
+		return wire.ReadInt[Signed8](r)
 	case unsigned1Type:
-		return readInt[Unsigned1](r)
+		return wire.ReadInt[Unsigned1](r)
 	case unsigned2Type:
-		return readInt[Unsigned2](r)
+		return wire.ReadInt[Unsigned2](r)
 	case unsigned4Type:
-		return readInt[Unsigned4](r)
+		return wire.ReadInt[Unsigned4](r)
 	case unsigned8Type:
-		return readInt[Unsigned8](r)
+		return wire.ReadInt[Unsigned8](r)
 	case boolFalseType:
 		return False, nil
 	case boolTrueType:
 		return True, nil
 	case float4Type:
-		n, err := readInt[uint32](r)
+		n, err := wire.ReadInt[uint32](r)
 		return Float4(math.Float32frombits(n)), err
 	case float8Type:
-		n, err := readInt[uint64](r)
+		n, err := wire.ReadInt[uint64](r)
 		return Float8(math.Float64frombits(n)), err
 	case nullType:
 		return Null, nil
@@ -83,27 +78,27 @@ func unmarshalValue(r *bytes.Reader, c byte) (Value, error) {
 	case listType:
 		return unmarshalList(r)
 	case utf8String1Type:
-		return unmarshalString[String1, uint8](r)
+		return wire.ReadString[uint8, String1](r)
 	case utf8String2Type:
-		return unmarshalString[String2, uint16](r)
+		return wire.ReadString[uint16, String2](r)
 	case utf8String4Type:
-		return unmarshalString[String4, uint32](r)
+		return wire.ReadString[uint32, String4](r)
 	case utf8String8Type:
-		return unmarshalString[String8, uint64](r)
+		return wire.ReadString[uint64, String8](r)
 	case octetString1Type:
-		return unmarshalString[Bytes1, uint8](r)
+		return wire.ReadString[uint8, Bytes1](r)
 	case octetString2Type:
-		return unmarshalString[Bytes2, uint16](r)
+		return wire.ReadString[uint16, Bytes2](r)
 	case octetString4Type:
-		return unmarshalString[Bytes4, uint32](r)
+		return wire.ReadString[uint32, Bytes4](r)
 	case octetString8Type:
-		return unmarshalString[Bytes8, uint64](r)
+		return wire.ReadString[uint64, Bytes8](r)
 	default:
 		return nil, fmt.Errorf("unrecognized type (%x)", c&typeMask)
 	}
 }
 
-func unmarshalStruct(r *bytes.Reader) (Struct, error) {
+func unmarshalStruct(r *bufio.Reader) (Struct, error) {
 	var s Struct
 
 	return s, readMembers(
@@ -120,7 +115,7 @@ func unmarshalStruct(r *bytes.Reader) (Struct, error) {
 	)
 }
 
-func unmarshalArray(r *bytes.Reader) (Array, error) {
+func unmarshalArray(r *bufio.Reader) (Array, error) {
 	var a Array
 
 	return a, readMembers(
@@ -136,7 +131,7 @@ func unmarshalArray(r *bytes.Reader) (Array, error) {
 	)
 }
 
-func unmarshalList(r *bytes.Reader) (List, error) {
+func unmarshalList(r *bufio.Reader) (List, error) {
 	var l List
 
 	return l, readMembers(
@@ -148,34 +143,20 @@ func unmarshalList(r *bytes.Reader) (List, error) {
 	)
 }
 
-func unmarshalString[S ~string | ~[]byte, L constraints.Unsigned](r *bytes.Reader) (S, error) {
-	var data []byte
-
-	len, err := readInt[L](r)
-	if err != nil {
-		return S(data), err
-	}
-
-	data = make([]byte, len)
-	_, err = io.ReadFull(r, data)
-
-	return S(data), err
-}
-
-func unmarshalTag(r *bytes.Reader, c byte) (Tag, error) {
+func unmarshalTag(r *bufio.Reader, c byte) (Tag, error) {
 	switch c & tagFormMask {
 	default: // anonymous
 		return AnonymousTag, nil
 	case contextSpecificTagForm:
-		return readInt[ContextSpecificTag](r)
+		return wire.ReadInt[ContextSpecificTag](r)
 	case commonProfileTag2Form:
-		return readInt[CommonProfileTag2](r)
+		return wire.ReadInt[CommonProfileTag2](r)
 	case commonProfileTag4Form:
-		return readInt[CommonProfileTag4](r)
+		return wire.ReadInt[CommonProfileTag4](r)
 	case implicitProfileTag2Form:
-		return readInt[ImplicitProfileTag2](r)
+		return wire.ReadInt[ImplicitProfileTag2](r)
 	case implicitProfileTag4Form:
-		return readInt[ImplicitProfileTag4](r)
+		return wire.ReadInt[ImplicitProfileTag4](r)
 	case fullyQualifiedTag6Form:
 		return unmarshalFullyQualifiedTag6(r)
 	case fullyQualifiedTag8Form:
@@ -183,23 +164,23 @@ func unmarshalTag(r *bytes.Reader, c byte) (Tag, error) {
 	}
 }
 
-func unmarshalFullyQualifiedTag6(r *bytes.Reader) (FullyQualifiedTag6, error) {
+func unmarshalFullyQualifiedTag6(r *bufio.Reader) (FullyQualifiedTag6, error) {
 	var (
 		t   FullyQualifiedTag6
 		err error
 	)
 
-	t.VendorID, err = readInt[uint16](r)
+	t.VendorID, err = wire.ReadInt[uint16](r)
 	if err != nil {
 		return t, err
 	}
 
-	t.Profile, err = readInt[uint16](r)
+	t.Profile, err = wire.ReadInt[uint16](r)
 	if err != nil {
 		return t, err
 	}
 
-	t.Tag, err = readInt[uint16](r)
+	t.Tag, err = wire.ReadInt[uint16](r)
 	if err != nil {
 		return t, err
 	}
@@ -207,23 +188,23 @@ func unmarshalFullyQualifiedTag6(r *bytes.Reader) (FullyQualifiedTag6, error) {
 	return t, nil
 }
 
-func unmarshalFullyQualifiedTag8(r *bytes.Reader) (FullyQualifiedTag8, error) {
+func unmarshalFullyQualifiedTag8(r *bufio.Reader) (FullyQualifiedTag8, error) {
 	var (
 		t   FullyQualifiedTag8
 		err error
 	)
 
-	t.VendorID, err = readInt[uint16](r)
+	t.VendorID, err = wire.ReadInt[uint16](r)
 	if err != nil {
 		return t, err
 	}
 
-	t.Profile, err = readInt[uint16](r)
+	t.Profile, err = wire.ReadInt[uint16](r)
 	if err != nil {
 		return t, err
 	}
 
-	t.Tag, err = readInt[uint32](r)
+	t.Tag, err = wire.ReadInt[uint32](r)
 	if err != nil {
 		return t, err
 	}
@@ -231,24 +212,8 @@ func unmarshalFullyQualifiedTag8(r *bytes.Reader) (FullyQualifiedTag8, error) {
 	return t, nil
 }
 
-func readInt[T constraints.Integer](r *bytes.Reader) (T, error) {
-	var v T
-	size := int(unsafe.Sizeof(v))
-
-	for i := 0; i < size; i++ {
-		b, err := r.ReadByte()
-		if err != nil {
-			return v, err
-		}
-
-		v |= T(b) << (8 * i)
-	}
-
-	return v, nil
-}
-
 func readMembers(
-	r *bytes.Reader,
+	r *bufio.Reader,
 	fn func(Tag, Value) error,
 ) error {
 	for {

@@ -1,6 +1,7 @@
 package tlv_test
 
 import (
+	"bytes"
 	"math"
 
 	. "github.com/jmalloc/motif/tlv"
@@ -12,9 +13,10 @@ var _ = Describe("func Marshal()", func() {
 	DescribeTable(
 		"it encodes/decodes floating-point values correctly",
 		func(expectValue Value, expectData []byte) {
-			data, err := Marshal(Root{V: expectValue})
+			data := &bytes.Buffer{}
+			err := Marshal(data, Root{V: expectValue})
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(data).To(Equal(expectData))
+			Expect(data.Bytes()).To(Equal(expectData))
 
 			e, err := Unmarshal(data)
 			Expect(err).ShouldNot(HaveOccurred())

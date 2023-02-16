@@ -1,6 +1,8 @@
 package tlv_test
 
 import (
+	"bytes"
+
 	. "github.com/jmalloc/motif/tlv"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -10,9 +12,10 @@ var _ = Describe("func Marshal()", func() {
 	DescribeTable(
 		"it encodes tags correctly",
 		func(expectTag Tag, expectData []byte) {
-			data, err := Marshal(Root{T: expectTag, V: Signed1(0)})
+			data := &bytes.Buffer{}
+			err := Marshal(data, Root{T: expectTag, V: Signed1(0)})
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(data).To(Equal(expectData))
+			Expect(data.Bytes()).To(Equal(expectData))
 
 			e, err := Unmarshal(data)
 			Expect(err).ShouldNot(HaveOccurred())

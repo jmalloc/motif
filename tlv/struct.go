@@ -14,8 +14,8 @@ func (s Struct) Members() []Element {
 
 // AcceptVisitor dispatches to the method on v that corresponds to the concrete
 // type the method's receiver.
-func (s Struct) AcceptVisitor(v ValueVisitor) {
-	v.VisitStruct(s)
+func (s Struct) AcceptVisitor(v ValueVisitor) error {
+	return v.VisitStruct(s)
 }
 
 // StructMember is an element that is a member of a structure.

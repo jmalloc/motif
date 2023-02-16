@@ -16,16 +16,24 @@ type (
 
 // AcceptVisitor dispatches to the method on v that corresponds to the concrete
 // type the method's receiver.
-func (u Unsigned1) AcceptVisitor(v ValueVisitor) { v.VisitUnsigned1(u) }
+func (u Unsigned1) AcceptVisitor(v ValueVisitor) error {
+	return v.VisitUnsigned1(u)
+}
 
 // AcceptVisitor dispatches to the method on v that corresponds to the concrete
 // type the method's receiver.
-func (u Unsigned2) AcceptVisitor(v ValueVisitor) { v.VisitUnsigned2(u) }
+func (u Unsigned2) AcceptVisitor(v ValueVisitor) error {
+	return v.VisitUnsigned2(u)
+}
 
 // AcceptVisitor dispatches to the method on v that corresponds to the concrete
 // type the method's receiver.
-func (u Unsigned4) AcceptVisitor(v ValueVisitor) { v.VisitUnsigned4(u) }
+func (u Unsigned4) AcceptVisitor(v ValueVisitor) error {
+	return v.VisitUnsigned4(u)
+}
 
 // AcceptVisitor dispatches to the method on v that corresponds to the concrete
 // type the method's receiver.
-func (u Unsigned8) AcceptVisitor(v ValueVisitor) { v.VisitUnsigned8(u) }
+func (u Unsigned8) AcceptVisitor(v ValueVisitor) error {
+	return v.VisitUnsigned8(u)
+}
