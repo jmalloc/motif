@@ -14,26 +14,7 @@ type (
 	Unsigned8 uint64
 )
 
-// AcceptVisitor dispatches to the method on v that corresponds to the concrete
-// type the method's receiver.
-func (u Unsigned1) AcceptVisitor(v ValueVisitor) error {
-	return v.VisitUnsigned1(u)
-}
-
-// AcceptVisitor dispatches to the method on v that corresponds to the concrete
-// type the method's receiver.
-func (u Unsigned2) AcceptVisitor(v ValueVisitor) error {
-	return v.VisitUnsigned2(u)
-}
-
-// AcceptVisitor dispatches to the method on v that corresponds to the concrete
-// type the method's receiver.
-func (u Unsigned4) AcceptVisitor(v ValueVisitor) error {
-	return v.VisitUnsigned4(u)
-}
-
-// AcceptVisitor dispatches to the method on v that corresponds to the concrete
-// type the method's receiver.
-func (u Unsigned8) AcceptVisitor(v ValueVisitor) error {
-	return v.VisitUnsigned8(u)
-}
+func (v Unsigned1) acceptVisitor(vis ValueVisitor) error { return vis.VisitUnsigned1(v) }
+func (v Unsigned2) acceptVisitor(vis ValueVisitor) error { return vis.VisitUnsigned2(v) }
+func (v Unsigned4) acceptVisitor(vis ValueVisitor) error { return vis.VisitUnsigned4(v) }
+func (v Unsigned8) acceptVisitor(vis ValueVisitor) error { return vis.VisitUnsigned8(v) }

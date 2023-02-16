@@ -1,49 +1,49 @@
-package tlv_test
+package tlvwire_test
 
 import (
 	"bytes"
 	"math"
 	"strings"
 
-	. "github.com/jmalloc/motif/tlv"
+	"github.com/jmalloc/motif/tlv"
 	. "github.com/onsi/ginkgo/v2"
 )
 
-var _ = Describe("func Marshal() and Unmarshal()", func() {
+var _ = Context("marshaling and unmarshaling", func() {
 	DescribeTable(
 		"it encodes/decodes UTF-8 strings correctly",
-		testScalarEncoding,
+		testScalar,
 		Entry(
 			"1 octet length, empty",
-			String1(""),
+			tlv.String1(""),
 			[]byte{0x0c, 0x00},
 		),
 		Entry(
 			"1 octet length, ASCII",
-			String1("Hello!"),
+			tlv.String1("Hello!"),
 			[]byte{0x0c, 0x06, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x21}),
 		Entry(
 			"1 octet length, UTF-8",
-			String1("Tschüs"),
+			tlv.String1("Tschüs"),
 			[]byte{0x0c, 0x07, 0x54, 0x73, 0x63, 0x68, 0xc3, 0xbc, 0x73},
 		),
 		Entry(
 			"2 octet length, empty",
-			String2(""),
+			tlv.String2(""),
 			[]byte{0x0d, 0x00, 0x00},
 		),
 		Entry(
 			"2 octet length, ASCII",
-			String2("Hello!"),
+			tlv.String2("Hello!"),
 			[]byte{0x0d, 0x06, 0x00, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x21}),
 		Entry(
 			"2 octet length, UTF-8",
-			String2("Tschüs"),
+			tlv.String2("Tschüs"),
 			[]byte{0x0d, 0x07, 0x00, 0x54, 0x73, 0x63, 0x68, 0xc3, 0xbc, 0x73},
 		),
 		Entry(
 			"2 octet length, length larger than 1 octet",
-			String2(strings.Repeat(" ", math.MaxUint8+1)),
+			tlv.String2(strings.Repeat(" ", math.MaxUint8+1)),
 			append(
 				[]byte{0x0d, 0x00, 0x01},
 				bytes.Repeat([]byte{' '}, math.MaxUint8+1)...,
@@ -51,21 +51,21 @@ var _ = Describe("func Marshal() and Unmarshal()", func() {
 		),
 		Entry(
 			"4 octet length, empty",
-			String4(""),
+			tlv.String4(""),
 			[]byte{0x0e, 0x00, 0x00, 0x00, 0x00},
 		),
 		Entry(
 			"4 octet length, ASCII",
-			String4("Hello!"),
+			tlv.String4("Hello!"),
 			[]byte{0x0e, 0x06, 0x00, 0x00, 0x00, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x21}),
 		Entry(
 			"4 octet length, UTF-8",
-			String4("Tschüs"),
+			tlv.String4("Tschüs"),
 			[]byte{0x0e, 0x07, 0x00, 0x00, 0x00, 0x54, 0x73, 0x63, 0x68, 0xc3, 0xbc, 0x73},
 		),
 		Entry(
 			"4 octet length, length larger than 2 octets",
-			String4(strings.Repeat(" ", math.MaxUint16+1)),
+			tlv.String4(strings.Repeat(" ", math.MaxUint16+1)),
 			append(
 				[]byte{0x0e, 0x00, 0x00, 0x01, 0x00},
 				bytes.Repeat([]byte{' '}, math.MaxUint16+1)...,
@@ -73,16 +73,16 @@ var _ = Describe("func Marshal() and Unmarshal()", func() {
 		),
 		Entry(
 			"8 octet length, empty",
-			String8(""),
+			tlv.String8(""),
 			[]byte{0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
 		),
 		Entry(
 			"8 octet length, ASCII",
-			String8("Hello!"),
+			tlv.String8("Hello!"),
 			[]byte{0x0f, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x21}),
 		Entry(
 			"8 octet length, UTF-8",
-			String8("Tschüs"),
+			tlv.String8("Tschüs"),
 			[]byte{0x0f, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x54, 0x73, 0x63, 0x68, 0xc3, 0xbc, 0x73},
 		),
 		// Note, we don't check for lengths larger than 4 octets because

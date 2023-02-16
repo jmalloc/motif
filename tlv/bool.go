@@ -1,5 +1,10 @@
 package tlv
 
+type (
+	// Bool is a TLV boolean value.
+	Bool bool
+)
+
 const (
 	// False is the TLV false value.
 	False Bool = false
@@ -8,11 +13,4 @@ const (
 	True Bool = true
 )
 
-// Bool is a TLV boolean value.
-type Bool bool
-
-// AcceptVisitor dispatches to the method on v that corresponds to the concrete
-// type the method's receiver.
-func (b Bool) AcceptVisitor(v ValueVisitor) error {
-	return v.VisitBool(b)
-}
+func (v Bool) acceptVisitor(vis ValueVisitor) error { return vis.VisitBool(v) }

@@ -2,7 +2,7 @@ package tlv
 
 // Value is an interface for a TLV value.
 type Value interface {
-	AcceptVisitor(ValueVisitor) error
+	acceptVisitor(ValueVisitor) error
 }
 
 // ValueVisitor is an interface for visiting TLV values.
@@ -30,4 +30,9 @@ type ValueVisitor interface {
 	VisitBytes2(Bytes2) error
 	VisitBytes4(Bytes4) error
 	VisitBytes8(Bytes8) error
+}
+
+// VisitValue visits a value with a visitor.
+func VisitValue(v Value, vis ValueVisitor) error {
+	return v.acceptVisitor(vis)
 }

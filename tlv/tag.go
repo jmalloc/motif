@@ -2,12 +2,13 @@ package tlv
 
 // Tag is an interface for a TLV tag.
 type Tag interface {
-	AcceptVisitor(TagVisitor) error
+	acceptVisitor(TagVisitor) error
 }
 
 // NonAnonymousTag is an interface for a TLV tag that is not AnonymousTag.
 type NonAnonymousTag interface {
 	Tag
+
 	isNotAnonymous()
 }
 
@@ -23,14 +24,19 @@ type TagVisitor interface {
 	VisitFullyQualifiedTag8(FullyQualifiedTag8) error
 }
 
+// VisitTag visits a tag with a visitor.
+func VisitTag(t Tag, vis TagVisitor) error {
+	return t.acceptVisitor(vis)
+}
+
 // AnonymousTag is a specifical tag that identifies an element without any tag
 // value.
-const AnonymousTag anonymousTag = 0
+var AnonymousTag anonymousTag
 
 type (
 	// anonymousTag is a specifical tag that identifies an element without any
 	// tag value.
-	anonymousTag uint8
+	anonymousTag struct{}
 
 	// ContextSpecificTag is a tag that identifies an element within the context
 	// of a specific structure.
@@ -71,53 +77,14 @@ type (
 	}
 )
 
-// AcceptVisitor dispatches to the method on v that corresponds to the concrete
-// type the method's receiver.
-func (anonymousTag) AcceptVisitor(v TagVisitor) error {
-	return v.VisitAnonymousTag()
-}
-
-// AcceptVisitor dispatches to the method on v that corresponds to the concrete
-// type the method's receiver.
-func (t ContextSpecificTag) AcceptVisitor(v TagVisitor) error {
-	return v.VisitContextSpecificTag(t)
-}
-
-// AcceptVisitor dispatches to the method on v that corresponds to the concrete
-// type the method's receiver.
-func (t CommonProfileTag2) AcceptVisitor(v TagVisitor) error {
-	return v.VisitCommonProfileTag2(t)
-}
-
-// AcceptVisitor dispatches to the method on v that corresponds to the concrete
-// type the method's receiver.
-func (t CommonProfileTag4) AcceptVisitor(v TagVisitor) error {
-	return v.VisitCommonProfileTag4(t)
-}
-
-// AcceptVisitor dispatches to the method on v that corresponds to the concrete
-// type the method's receiver.
-func (t ImplicitProfileTag2) AcceptVisitor(v TagVisitor) error {
-	return v.VisitImplicitProfileTag2(t)
-}
-
-// AcceptVisitor dispatches to the method on v that corresponds to the concrete
-// type the method's receiver.
-func (t ImplicitProfileTag4) AcceptVisitor(v TagVisitor) error {
-	return v.VisitImplicitProfileTag4(t)
-}
-
-// AcceptVisitor dispatches to the method on v that corresponds to the concrete
-// type the method's receiver.
-func (t FullyQualifiedTag6) AcceptVisitor(v TagVisitor) error {
-	return v.VisitFullyQualifiedTag6(t)
-}
-
-// AcceptVisitor dispatches to the method on v that corresponds to the concrete
-// type the method's receiver.
-func (t FullyQualifiedTag8) AcceptVisitor(v TagVisitor) error {
-	return v.VisitFullyQualifiedTag8(t)
-}
+func (anonymousTag) acceptVisitor(v TagVisitor) error          { return v.VisitAnonymousTag() }
+func (t ContextSpecificTag) acceptVisitor(v TagVisitor) error  { return v.VisitContextSpecificTag(t) }
+func (t CommonProfileTag2) acceptVisitor(v TagVisitor) error   { return v.VisitCommonProfileTag2(t) }
+func (t CommonProfileTag4) acceptVisitor(v TagVisitor) error   { return v.VisitCommonProfileTag4(t) }
+func (t ImplicitProfileTag2) acceptVisitor(v TagVisitor) error { return v.VisitImplicitProfileTag2(t) }
+func (t ImplicitProfileTag4) acceptVisitor(v TagVisitor) error { return v.VisitImplicitProfileTag4(t) }
+func (t FullyQualifiedTag6) acceptVisitor(v TagVisitor) error  { return v.VisitFullyQualifiedTag6(t) }
+func (t FullyQualifiedTag8) acceptVisitor(v TagVisitor) error  { return v.VisitFullyQualifiedTag8(t) }
 
 func (ContextSpecificTag) isNotAnonymous()  {}
 func (CommonProfileTag2) isNotAnonymous()   {}
