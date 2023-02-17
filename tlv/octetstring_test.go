@@ -6,6 +6,7 @@ import (
 
 	. "github.com/jmalloc/motif/tlv"
 	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
 var _ = DescribeTable(
@@ -54,4 +55,21 @@ var _ = DescribeTable(
 	),
 	// Note, we don't check for lengths larger than 4 octets because
 	// allocating a slice of that length takes too long (~50s on M1 MBP).
+)
+
+var _ = DescribeTable(
+	"over-length octet strings",
+	func(v Value) {
+		e := Element{V: v}
+		_, err := e.MarshalBinary()
+		Expect(err).To(MatchError(MatchRegexp("string too long to encode length as uint[0-9]+")))
+	},
+	Entry(
+		"1 octet string",
+		OctetString1(bytes.Repeat([]byte{0x0}, math.MaxUint8+1)),
+	),
+	Entry(
+		"2 octet string",
+		OctetString2(bytes.Repeat([]byte{0x0}, math.MaxUint16+1)),
+	),
 )

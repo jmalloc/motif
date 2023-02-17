@@ -2,8 +2,20 @@ package tlv_test
 
 import (
 	. "github.com/jmalloc/motif/tlv"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
+
+var _ = Describe("type Element", func() {
+	Describe("MarshalBinary()", func() {
+		It("encodes the zero-value as an anonymous null TLV element", func() {
+			var e Element
+			data, err := e.MarshalBinary()
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(data).To(Equal([]byte{0x14}))
+		})
+	})
+})
 
 func testScalar(v Value, data []byte) {
 	m := Element{

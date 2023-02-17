@@ -1,6 +1,7 @@
 package wire
 
 import (
+	"fmt"
 	"io"
 
 	"golang.org/x/exp/constraints"
@@ -13,8 +14,14 @@ func WriteString[
 	L constraints.Unsigned,
 	T ~string | ~[]byte,
 ](w io.Writer, s T) error {
-	n := len(s)
-	if err := WriteInt(w, L(n)); err != nil {
+	lenInt := len(s)
+	lenL := L(lenInt)
+
+	if int(lenL) != lenInt {
+		return fmt.Errorf("string too long to encode length as %T", lenL)
+	}
+
+	if err := WriteInt(w, lenL); err != nil {
 		return err
 	}
 
