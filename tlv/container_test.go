@@ -1,33 +1,33 @@
-package tlvwire_test
+package tlv_test
 
 import (
-	"github.com/jmalloc/motif/tlv"
+	. "github.com/jmalloc/motif/tlv"
 	. "github.com/onsi/ginkgo/v2"
 )
 
 var _ = DescribeTable(
 	"structure containers",
-	testContainer[tlv.Struct],
+	testContainer[Struct],
 	Entry(
 		"nil structure",
-		tlv.Struct(nil),
+		Struct(nil),
 		[]byte{0x15, 0x18},
 	),
 	Entry(
 		"empty structure",
-		tlv.Struct{},
+		Struct{},
 		[]byte{0x15, 0x18},
 	),
 	Entry(
 		"two context specific tags, signed inte­ger, 1 octet values {0 = 42, 1 = -17}",
-		tlv.Struct{
+		Struct{
 			{
-				T: tlv.ContextSpecificTag(0),
-				V: tlv.Signed1(42),
+				T: ContextSpecificTag(0),
+				V: Signed1(42),
 			},
 			{
-				T: tlv.ContextSpecificTag(1),
-				V: tlv.Signed1(-17),
+				T: ContextSpecificTag(1),
+				V: Signed1(-17),
 			},
 		},
 		[]byte{
@@ -38,25 +38,25 @@ var _ = DescribeTable(
 
 var _ = DescribeTable(
 	"array containers",
-	testContainer[tlv.Array],
+	testContainer[Array],
 	Entry(
 		"nil array",
-		tlv.Array(nil),
+		Array(nil),
 		[]byte{0x16, 0x18},
 	),
 	Entry(
 		"empty array",
-		tlv.Array{},
+		Array{},
 		[]byte{0x16, 0x18},
 	),
 	Entry(
 		"signed integer members, 1-octet values, [0, 1, 2, 3, 4]",
-		tlv.Array{
-			tlv.Signed1(0),
-			tlv.Signed1(1),
-			tlv.Signed1(2),
-			tlv.Signed1(3),
-			tlv.Signed1(4),
+		Array{
+			Signed1(0),
+			Signed1(1),
+			Signed1(2),
+			Signed1(3),
+			Signed1(4),
 		},
 		[]byte{
 			0x16, 0x00, 0x00, 0x00, 0x01, 0x00, 0x02, 0x00,
@@ -65,12 +65,12 @@ var _ = DescribeTable(
 	),
 	Entry(
 		`mix of element types, [42, -170000, {}, 17.9, "Hello!"]`,
-		tlv.Array{
-			tlv.Signed1(42),
-			tlv.Signed4(-170000),
-			tlv.Struct(nil),
-			tlv.Single(17.9),
-			tlv.UTF8String1("Hello!"),
+		Array{
+			Signed1(42),
+			Signed4(-170000),
+			Struct(nil),
+			Single(17.9),
+			UTF8String1("Hello!"),
 		},
 		[]byte{
 			0x16, 0x00, 0x2a, 0x02, 0xf0, 0x67, 0xfd, 0xff,
@@ -82,39 +82,39 @@ var _ = DescribeTable(
 
 var _ = DescribeTable(
 	"list containers",
-	testContainer[tlv.List],
+	testContainer[List],
 	Entry(
 		"nil list",
-		tlv.List(nil),
+		List(nil),
 		[]byte{0x17, 0x18},
 	),
 	Entry(
 		"empty list",
-		tlv.List{},
+		List{},
 		[]byte{0x17, 0x18},
 	),
 	Entry(
 		"mix of anonymous and context tags, signed integer, 1 octet values, [1, 0 = 42, 2, 3, 0 = -17]",
-		tlv.List{
+		List{
 			{
-				T: tlv.AnonymousTag,
-				V: tlv.Signed1(1),
+				T: AnonymousTag,
+				V: Signed1(1),
 			},
 			{
-				T: tlv.ContextSpecificTag(0),
-				V: tlv.Signed1(42),
+				T: ContextSpecificTag(0),
+				V: Signed1(42),
 			},
 			{
-				T: tlv.AnonymousTag,
-				V: tlv.Signed1(2),
+				T: AnonymousTag,
+				V: Signed1(2),
 			},
 			{
-				T: tlv.AnonymousTag,
-				V: tlv.Signed1(3),
+				T: AnonymousTag,
+				V: Signed1(3),
 			},
 			{
-				T: tlv.ContextSpecificTag(0),
-				V: tlv.Signed1(-17),
+				T: ContextSpecificTag(0),
+				V: Signed1(-17),
 			},
 		},
 		[]byte{

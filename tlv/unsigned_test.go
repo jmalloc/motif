@@ -1,7 +1,7 @@
-package tlvwire_test
+package tlv_test
 
 import (
-	"github.com/jmalloc/motif/tlv"
+	. "github.com/jmalloc/motif/tlv"
 	. "github.com/onsi/ginkgo/v2"
 )
 
@@ -10,22 +10,22 @@ var _ = DescribeTable(
 	testScalar,
 	Entry(
 		"1 octet",
-		tlv.Unsigned1(42),
+		Unsigned1(42),
 		[]byte{0x04, 0x2a},
 	),
 	Entry(
 		"2 octet",
-		tlv.Unsigned2(420),
+		Unsigned2(420),
 		[]byte{0x05, 0xa4, 0x01},
 	),
 	Entry(
 		"4 octet",
-		tlv.Unsigned4(420000),
+		Unsigned4(420000),
 		[]byte{0x06, 0xa0, 0x68, 0x06, 0x00},
 	),
 	Entry(
 		"8 octet",
-		tlv.Unsigned8(40000000000),
+		Unsigned8(40000000000),
 		[]byte{0x07, 0x00, 0x90, 0x2f, 0x50, 0x09, 0x00, 0x00, 0x00},
 	),
 )

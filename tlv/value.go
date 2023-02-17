@@ -1,5 +1,12 @@
 package tlv
 
+import (
+	"bytes"
+	"fmt"
+
+	"github.com/jmalloc/motif/internal/wire"
+)
+
 // Value is an interface for a TLV value.
 type Value interface {
 	acceptVisitor(ValueVisitor) error
@@ -35,4 +42,59 @@ type ValueVisitor interface {
 // VisitValue visits a value with a visitor.
 func VisitValue(v Value, vis ValueVisitor) error {
 	return v.acceptVisitor(vis)
+}
+
+func unmarshalValue(r *bytes.Reader, c byte) (Value, error) {
+	switch c & typeMask {
+	case signed1Type:
+		return wire.ReadInt[Signed1](r)
+	case signed2Type:
+		return wire.ReadInt[Signed2](r)
+	case signed4Type:
+		return wire.ReadInt[Signed4](r)
+	case signed8Type:
+		return wire.ReadInt[Signed8](r)
+	case unsigned1Type:
+		return wire.ReadInt[Unsigned1](r)
+	case unsigned2Type:
+		return wire.ReadInt[Unsigned2](r)
+	case unsigned4Type:
+		return wire.ReadInt[Unsigned4](r)
+	case unsigned8Type:
+		return wire.ReadInt[Unsigned8](r)
+	case boolFalseType:
+		return False, nil
+	case boolTrueType:
+		return True, nil
+	case singleType:
+		return unmarshalSingle(r)
+	case doubleType:
+		return unmarshalDouble(r)
+	case nullType:
+		return Null, nil
+	case structType:
+		return unmarshalStruct(r)
+	case arrayType:
+		return unmarshalArray(r)
+	case listType:
+		return unmarshalList(r)
+	case utf8String1Type:
+		return wire.ReadString[uint8, UTF8String1](r)
+	case utf8String2Type:
+		return wire.ReadString[uint16, UTF8String2](r)
+	case utf8String4Type:
+		return wire.ReadString[uint32, UTF8String4](r)
+	case utf8String8Type:
+		return wire.ReadString[uint64, UTF8String8](r)
+	case octetString1Type:
+		return wire.ReadString[uint8, OctetString1](r)
+	case octetString2Type:
+		return wire.ReadString[uint16, OctetString2](r)
+	case octetString4Type:
+		return wire.ReadString[uint32, OctetString4](r)
+	case octetString8Type:
+		return wire.ReadString[uint64, OctetString8](r)
+	default:
+		return nil, fmt.Errorf("unrecognized type (%x)", c&typeMask)
+	}
 }

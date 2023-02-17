@@ -1,41 +1,42 @@
-package tlvwire_test
+package tlv_test
 
 import (
-	"github.com/jmalloc/motif/tlv"
-	. "github.com/jmalloc/motif/tlv/tlvwire"
+	. "github.com/jmalloc/motif/tlv"
 	. "github.com/onsi/gomega"
 )
 
-func testScalar(v tlv.Value, data []byte) {
-	m := tlv.Element{
-		T: tlv.AnonymousTag,
+func testScalar(v Value, data []byte) {
+	m := Element{
+		T: AnonymousTag,
 		V: v,
 	}
-	d, err := Marshal(m)
+	d, err := m.MarshalBinary()
 	Expect(err).ShouldNot(HaveOccurred())
 	Expect(d).To(Equal(data))
 
-	u, err := Unmarshal(d)
+	var u Element
+	err = u.UnmarshalBinary(d)
 	Expect(err).ShouldNot(HaveOccurred())
 	Expect(u).To(Equal(m))
 }
 
 func testContainer[
 	T interface {
-		tlv.Value
+		Value
 		~[]M
 	},
 	M any,
 ](v T, data []byte) {
-	m := tlv.Element{
-		T: tlv.AnonymousTag,
+	m := Element{
+		T: AnonymousTag,
 		V: v,
 	}
-	d, err := Marshal(m)
+	d, err := m.MarshalBinary()
 	Expect(err).ShouldNot(HaveOccurred())
 	Expect(d).To(Equal(data))
 
-	u, err := Unmarshal(d)
+	var u Element
+	err = u.UnmarshalBinary(d)
 	Expect(err).ShouldNot(HaveOccurred())
 	Expect(u.T).To(Equal(m.T))
 
@@ -46,16 +47,17 @@ func testContainer[
 	}
 }
 
-func testTag(t tlv.Tag, data []byte) {
-	m := tlv.Element{
+func testTag(t Tag, data []byte) {
+	m := Element{
 		T: t,
-		V: tlv.Signed1(0),
+		V: Signed1(0),
 	}
-	d, err := Marshal(m)
+	d, err := m.MarshalBinary()
 	Expect(err).ShouldNot(HaveOccurred())
 	Expect(d).To(Equal(data))
 
-	u, err := Unmarshal(d)
+	var u Element
+	err = u.UnmarshalBinary(d)
 	Expect(err).ShouldNot(HaveOccurred())
 	Expect(u).To(Equal(m))
 }

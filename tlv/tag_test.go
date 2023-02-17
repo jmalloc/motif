@@ -1,7 +1,7 @@
-package tlvwire_test
+package tlv_test
 
 import (
-	"github.com/jmalloc/motif/tlv"
+	. "github.com/jmalloc/motif/tlv"
 	. "github.com/onsi/ginkgo/v2"
 )
 
@@ -10,37 +10,37 @@ var _ = DescribeTable(
 	testTag,
 	Entry(
 		"anonymous",
-		tlv.AnonymousTag,
+		AnonymousTag,
 		[]byte{0x00, 0x00},
 	),
 	Entry(
 		"context-specific",
-		tlv.ContextSpecificTag(1),
+		ContextSpecificTag(1),
 		[]byte{0x20, 0x01, 0x00},
 	),
 	Entry(
 		"common profile, 2 octet",
-		tlv.CommonProfileTag2(1),
+		CommonProfileTag2(1),
 		[]byte{0x40, 0x01, 0x00, 0x00},
 	),
 	Entry(
 		"common profile, 4 octet",
-		tlv.CommonProfileTag4(100000),
+		CommonProfileTag4(100000),
 		[]byte{0x60, 0xa0, 0x86, 0x01, 0x00, 0x00},
 	),
 	Entry(
 		"implicit profile, 2 octet",
-		tlv.ImplicitProfileTag2(1),
+		ImplicitProfileTag2(1),
 		[]byte{0x80, 0x01, 0x00, 0x00},
 	),
 	Entry(
 		"implicit profile, 4 octet",
-		tlv.ImplicitProfileTag4(100000),
+		ImplicitProfileTag4(100000),
 		[]byte{0xA0, 0xa0, 0x86, 0x01, 0x00, 0x00},
 	),
 	Entry(
 		"fully-qualified, 6 octet",
-		tlv.FullyQualifiedTag6{
+		FullyQualifiedTag6{
 			VendorID: 0xfff1,
 			Profile:  0xdeed,
 			Tag:      0x01,
@@ -49,7 +49,7 @@ var _ = DescribeTable(
 	),
 	Entry(
 		"fully-qualified, 8 octet",
-		tlv.FullyQualifiedTag8{
+		FullyQualifiedTag8{
 			VendorID: 0xfff1,
 			Profile:  0xdeed,
 			Tag:      0xaa55feed,

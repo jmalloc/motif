@@ -1,7 +1,7 @@
-package tlvwire_test
+package tlv_test
 
 import (
-	"github.com/jmalloc/motif/tlv"
+	. "github.com/jmalloc/motif/tlv"
 	. "github.com/onsi/ginkgo/v2"
 )
 
@@ -10,12 +10,12 @@ var _ = DescribeTable(
 	testScalar,
 	Entry(
 		"false",
-		tlv.False,
+		False,
 		[]byte{0x08},
 	),
 	Entry(
 		"true",
-		tlv.True,
+		True,
 		[]byte{0x09},
 	),
 )
