@@ -2,9 +2,9 @@ package message
 
 import (
 	"bytes"
-	"io"
 
 	"github.com/jmalloc/motif/internal/wire"
+	"github.com/jmalloc/motif/optional"
 )
 
 // ProtocolMessage is the payload of a protocol message.
@@ -16,37 +16,37 @@ type ProtocolMessage struct {
 	ApplicationPayload []byte
 	IsFromInitiator    bool
 	RequiresAck        bool
-	AckMessageCounter  Optional[uint32]
+	AckMessageCounter  optional.Value[uint32]
 	SecuredExtensions  []byte
 }
 
 // MarshalBinary returns the binary representation of m.
 func (m ProtocolMessage) MarshalBinary() ([]byte, error) {
-	w := &bytes.Buffer{}
-
-	var flags byte
+	var exchangeFlags byte
 
 	if m.IsFromInitiator {
-		flags |= exchangeFlagI
+		exchangeFlags |= exchangeFlagI
 	}
 
 	if m.RequiresAck {
-		flags |= exchangeFlagR
+		exchangeFlags |= exchangeFlagR
 	}
 
 	if m.ProtocolVendorID != 0 {
-		flags |= exchangeFlagV
+		exchangeFlags |= exchangeFlagV
 	}
 
-	if m.AckMessageCounter.ok {
-		flags |= exchangeFlagA
+	if m.AckMessageCounter.IsPresent() {
+		exchangeFlags |= exchangeFlagA
 	}
 
 	if len(m.SecuredExtensions) != 0 {
-		flags |= exchangeFlagSX
+		exchangeFlags |= exchangeFlagSX
 	}
 
-	if err := wire.WriteInt(w, flags); err != nil {
+	w := &bytes.Buffer{}
+
+	if err := wire.WriteInt(w, exchangeFlags); err != nil {
 		return nil, err
 	}
 
@@ -68,8 +68,8 @@ func (m ProtocolMessage) MarshalBinary() ([]byte, error) {
 		}
 	}
 
-	if m.AckMessageCounter.ok {
-		if err := wire.WriteInt(w, m.AckMessageCounter.value); err != nil {
+	if m.AckMessageCounter.IsPresent() {
+		if err := wire.WriteInt(w, m.AckMessageCounter.Value()); err != nil {
 			return nil, err
 		}
 	}
@@ -91,13 +91,13 @@ func (m ProtocolMessage) MarshalBinary() ([]byte, error) {
 func (m *ProtocolMessage) UnmarshalBinary(data []byte) error {
 	r := bytes.NewReader(data)
 
-	flags, err := wire.ReadInt[byte](r)
+	exchangeFlags, err := wire.ReadInt[byte](r)
 	if err != nil {
 		return err
 	}
 
-	m.IsFromInitiator = flags&exchangeFlagI != 0
-	m.RequiresAck = flags&exchangeFlagR != 0
+	m.IsFromInitiator = exchangeFlags&exchangeFlagI != 0
+	m.RequiresAck = exchangeFlags&exchangeFlagR != 0
 
 	if err := wire.AssignInt(r, &m.ProtocolOpCode); err != nil {
 		return err
@@ -111,62 +111,55 @@ func (m *ProtocolMessage) UnmarshalBinary(data []byte) error {
 		return err
 	}
 
-	if flags&exchangeFlagV != 0 {
-		if err := wire.AssignInt(r, &m.ProtocolVendorID); err != nil {
-			return err
-		}
+	if exchangeFlags&exchangeFlagV == 0 {
+		m.ProtocolVendorID = 0
+	} else if err := wire.AssignInt(r, &m.ProtocolVendorID); err != nil {
+		return err
 	}
 
-	if flags&exchangeFlagA != 0 {
-		c, err := wire.ReadInt[uint32](r)
-		if err != nil {
-			return err
-		}
-
-		m.AckMessageCounter = With(c)
+	if err := wire.AssignOptionalInt(
+		r,
+		exchangeFlags&exchangeFlagA != 0,
+		&m.AckMessageCounter,
+	); err != nil {
+		return err
 	}
 
-	if flags&exchangeFlagSX != 0 {
-		if err := wire.AssignString[uint16](r, &m.SecuredExtensions); err != nil {
-			return err
-		}
+	if exchangeFlags&exchangeFlagSX == 0 {
+		m.SecuredExtensions = nil
+	} else if err := wire.AssignString[uint16](r, &m.SecuredExtensions); err != nil {
+		return err
 	}
 
-	m.IsFromInitiator = flags&exchangeFlagI != 0
-	m.RequiresAck = flags&exchangeFlagR != 0
+	m.IsFromInitiator = exchangeFlags&exchangeFlagI != 0
+	m.RequiresAck = exchangeFlags&exchangeFlagR != 0
 
-	if r.Len() == 0 {
-		return nil
-	}
-
-	m.ApplicationPayload, err = io.ReadAll(r)
-
-	return err
+	return wire.AssignRemaining(r, &m.ApplicationPayload)
 }
 
 const (
-	// ExchangeFlagI is a bit-mask that isolates the "I" sub-field of the
+	// exchangeFlagI is a bit-mask that isolates the "I" sub-field of the
 	// "exchange flags" bit-field. The "I" sub-field is a boolean that indicates
 	// whether the message was sent by the initiator of the exchange.
 	exchangeFlagI = 0b00000001
 
-	// ExchangeFlagA is a bit-mask that isolates the "A" sub-field of the
+	// exchangeFlagA is a bit-mask that isolates the "A" sub-field of the
 	// "exchange flags" bit-field. The "A" sub-field is a boolean that indicates
 	// whether the message serves as an acknowledgement of a previously received
 	// message.
 	exchangeFlagA = 0b00000010
 
-	// ExchangeFlagR is a bit-mask that isolates the "R" sub-field of the
+	// exchangeFlagR is a bit-mask that isolates the "R" sub-field of the
 	// "exchange flags" bit-field. The "R" sub-field is a boolean that indicates
 	// whether the sender requires an acknowledgement of the message.
 	exchangeFlagR = 0b00000100
 
-	// ExchangeFlagSX is a bit-mask that isolates the "SX" sub-field of the
+	// exchangeFlagSX is a bit-mask that isolates the "SX" sub-field of the
 	// "exchange flags" bit-field. The "SX" sub-field is a boolean that
 	// indicates whether the message has secured extensions.
 	exchangeFlagSX = 0b00001000
 
-	// ExchangeFlagV is a bit-mask that isolates the "V" sub-field of the
+	// exchangeFlagV is a bit-mask that isolates the "V" sub-field of the
 	// "exchange flags" bit-field. The "V" sub-field is a boolean that indicates
 	// whether the message has a "vendor ID" field.
 	exchangeFlagV = 0b00010000

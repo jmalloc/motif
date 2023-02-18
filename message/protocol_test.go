@@ -2,6 +2,7 @@ package message_test
 
 import (
 	. "github.com/jmalloc/motif/message"
+	"github.com/jmalloc/motif/optional"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -45,7 +46,7 @@ var _ = Describe("type ProtocolMessage", func() {
 			Entry(
 				"is acknolwedgement",
 				ProtocolMessage{
-					AckMessageCounter: With[uint32](0xdeadbeef),
+					AckMessageCounter: optional.With[uint32](0xdeadbeef),
 				},
 				[]byte{
 					0x02,       // exchange flags
@@ -103,7 +104,7 @@ var _ = Describe("type ProtocolMessage", func() {
 					ApplicationPayload: []byte("<payload>"),
 					IsFromInitiator:    true,
 					RequiresAck:        true,
-					AckMessageCounter:  With[uint32](0xbaadf00d),
+					AckMessageCounter:  optional.With[uint32](0xbaadf00d),
 					SecuredExtensions:  []byte("<extensions>"),
 				},
 				[]byte{
