@@ -2,26 +2,50 @@ package message
 
 import (
 	"bytes"
+	"crypto/aes"
+	"io"
 
+	"github.com/jmalloc/motif/internal/crypto"
 	"github.com/jmalloc/motif/internal/wire"
-	"github.com/jmalloc/motif/optional"
 )
 
-// Encrypter is an interface for performing encryption operations on unencrypted
-// message data.
-type Encrypter interface{}
+/*
+   static encrypt(msg, key) {
+       var headerSize = 8  // msgFlags (1) + sessionId (2) + secFlags (1) + msgCounter (4)
+       if (msg[0] & MsgCodec.MSG_FLAGS_SRC_PRESENT) { headerSize += 8 }
+       if (msg[0] & MsgCodec.MSG_FLAGS_DST_PRESENT) { headerSize += 8 }
+       if (msg[0] & MsgCodec.MSG_FLAGS_DST_GROUP) { headerSize += 2 }
 
-// Decrypter is an interface for performing decryption operations on encrypted
-// message data.
-type Decrypter interface{}
+       const nonce = MsgCodec.getNonce(msg)      // number used only once
+       const aad = msg.subarray(0,headerSize)    // additional authenticated data
+       const pay = msg.subarray(headerSize)      // plaintext payload to be encrypted
+
+       logger.trace("AAD:  " + aad.toString('hex'))
+       logger.trace("Plain:  " + pay.toString('hex'))
+
+       // TODO(#8): move AES-CCM into crypto/Crypto.js
+       var cipher = crypto.createCipheriv("aes-128-ccm", key, nonce, {authTagLength: 16})
+       cipher.setAAD(aad, { plaintextLength: pay.length })
+       var encrypted = Buffer.concat([cipher.update(pay), cipher.final()])
+       var tag = cipher.getAuthTag()
+
+       logger.trace("Tag:  " + tag.toString('hex'))
+
+       return Buffer.concat([aad, encrypted, tag])
+   }
+*/
+
+// KeyProvider is a function that locates the encryption/decryption key to use
+// based on the session ID.
+type KeyProvider func(sessionID uint16) ([]byte, error)
 
 // Message is a Matter message frame.
 type Message struct {
 	SessionID              uint16
 	IsGroupSession         bool
-	SourceNodeID           optional.Value[uint64]
-	DestinationNodeID      optional.Value[uint64]
-	DestinationGroupID     optional.Value[uint16]
+	SourceNodeID           uint64
+	DestinationNodeID      uint64
+	DestinationGroupID     uint16
 	MessageCounter         uint32
 	MessagePayload         []byte
 	IsControlMessage       bool
@@ -30,92 +54,46 @@ type Message struct {
 }
 
 // MarshalBinary returns the binary representation of m.
-func (m Message) MarshalBinary(e Encrypter) ([]byte, error) {
-	var messageFlags, securityFlags uint8
-
-	if m.SourceNodeID.IsPresent() {
-		messageFlags |= messageFlagS
+func (m Message) MarshalBinary(p KeyProvider) ([]byte, error) {
+	header, err := m.header()
+	if err != nil {
+		return nil, err
 	}
 
-	if m.DestinationNodeID.IsPresent() {
-		messageFlags |= messageFlagDSIZNodeID
+	payload, err := m.payload()
+	if err != nil {
+		return nil, err
 	}
 
-	if m.DestinationGroupID.IsPresent() {
-		messageFlags |= messageFlagDSIZGroupID
-
-		if m.DestinationNodeID.IsPresent() {
-			panic("cannot use both destination node ID and destination group ID")
+	if m.SessionID != 0 {
+		k, err := p(m.SessionID)
+		if err != nil {
+			return nil, err
 		}
-	}
 
-	if m.HasPrivacyEnhancements {
-		securityFlags |= securityFlagP
-	}
+		cipher, err := aes.NewCipher(k)
+		if err != nil {
+			return nil, err
+		}
 
-	if m.IsControlMessage {
-		securityFlags |= securityFlagC
-	}
+		nonce, err := m.nonce()
+		if err != nil {
+			return nil, err
+		}
 
-	if len(m.MessageExtensions) > 0 {
-		securityFlags |= securityFlagMX
-	}
-
-	if m.IsGroupSession {
-		securityFlags |= sessionTypeGroup
-	} else {
-		securityFlags |= sessionTypeUnicast
+		ccm := crypto.NewCCM(cipher, 2, 16)
+		payload = ccm.Seal(nil, nonce, payload, header)
 	}
 
 	w := &bytes.Buffer{}
-
-	if err := wire.WriteInt(w, messageFlags); err != nil {
-		return nil, err
-	}
-
-	if err := wire.WriteInt(w, m.SessionID); err != nil {
-		return nil, err
-	}
-
-	if err := wire.WriteInt(w, securityFlags); err != nil {
-		return nil, err
-	}
-
-	if err := wire.WriteInt(w, m.MessageCounter); err != nil {
-		return nil, err
-	}
-
-	if m.SourceNodeID.IsPresent() {
-		if err := wire.WriteInt(w, m.SourceNodeID.Value()); err != nil {
-			return nil, err
-		}
-	}
-
-	if m.DestinationNodeID.IsPresent() {
-		if err := wire.WriteInt(w, m.DestinationNodeID.Value()); err != nil {
-			return nil, err
-		}
-	} else if m.DestinationGroupID.IsPresent() {
-		if err := wire.WriteInt(w, m.DestinationGroupID.Value()); err != nil {
-			return nil, err
-		}
-	}
-
-	if len(m.MessageExtensions) > 0 {
-		if err := wire.WriteString[uint16](w, m.MessageExtensions); err != nil {
-			return nil, err
-		}
-	}
-
-	if _, err := w.Write(m.MessagePayload); err != nil {
-		return nil, err
-	}
+	w.Write(header)
+	w.Write(payload)
 
 	return w.Bytes(), nil
 }
 
 // UnmarshalBinary sets m to the value represented by data.
-func (m *Message) UnmarshalBinary(d Decrypter, data []byte) error {
+func (m *Message) UnmarshalBinary(p KeyProvider, data []byte) error {
 	r := bytes.NewReader(data)
 
 	messageFlags, err := wire.ReadInt[uint8](r)
@@ -132,32 +110,65 @@ func (m *Message) UnmarshalBinary(d Decrypter, data []byte) error {
 		return err
 	}
 
+	m.IsGroupSession = securityFlags&sessionTypeGroup != 0
+	m.IsControlMessage = securityFlags&securityFlagC != 0
+
 	if err := wire.AssignInt(r, &m.MessageCounter); err != nil {
 		return err
 	}
 
-	if err := wire.AssignOptionalInt(
-		r,
-		messageFlags&messageFlagS != 0,
-		&m.SourceNodeID,
-	); err != nil {
+	if messageFlags&messageFlagS == 0 {
+		m.SourceNodeID = 0
+	} else if err := wire.AssignInt(r, &m.SourceNodeID); err != nil {
 		return err
 	}
 
-	if err := wire.AssignOptionalInt(
-		r,
-		messageFlags&messageFlagDSIZNodeID != 0,
-		&m.DestinationNodeID,
-	); err != nil {
+	if messageFlags&messageFlagDSIZNodeID == 0 {
+		m.DestinationNodeID = 0
+	} else if wire.AssignInt(r, &m.DestinationNodeID); err != nil {
 		return err
 	}
 
-	if err := wire.AssignOptionalInt(
-		r,
-		messageFlags&messageFlagDSIZGroupID != 0,
-		&m.DestinationGroupID,
-	); err != nil {
+	if messageFlags&messageFlagDSIZGroupID == 0 {
+		m.DestinationGroupID = 0
+	} else if err := wire.AssignInt(r, &m.DestinationGroupID); err != nil {
 		return err
+	}
+
+	if m.SessionID != 0 {
+		offset, err := r.Seek(0, io.SeekCurrent) // tell
+		if err != nil {
+			return err
+		}
+		header := data[:offset]
+
+		k, err := p(m.SessionID)
+		if err != nil {
+			return err
+		}
+
+		cipher, err := aes.NewCipher(k)
+		if err != nil {
+			return err
+		}
+
+		ciphertext, err := io.ReadAll(r)
+		if err != nil {
+			return err
+		}
+
+		nonce, err := m.nonce()
+		if err != nil {
+			return err
+		}
+
+		ccm := crypto.NewCCM(cipher, 2, 16)
+		plaintext, err := ccm.Open(nil, nonce, ciphertext, header)
+		if err != nil {
+			return err
+		}
+
+		r.Reset(plaintext)
 	}
 
 	if securityFlags&securityFlagMX == 0 {
@@ -167,6 +178,124 @@ func (m *Message) UnmarshalBinary(d Decrypter, data []byte) error {
 	}
 
 	return wire.AssignRemaining(r, &m.MessagePayload)
+}
+
+func (m Message) messageFlags() byte {
+	var f byte
+
+	if m.SourceNodeID != 0 {
+		f |= messageFlagS
+	}
+
+	if m.DestinationNodeID != 0 {
+		f |= messageFlagDSIZNodeID
+	}
+
+	if m.DestinationGroupID != 0 {
+		if m.DestinationNodeID != 0 {
+			panic("cannot use both destination node ID and destination group ID")
+		}
+
+		f |= messageFlagDSIZGroupID
+	}
+
+	return f
+}
+
+func (m Message) securityFlags() byte {
+	var f uint8
+
+	if m.HasPrivacyEnhancements {
+		f |= securityFlagP
+	}
+
+	if m.IsControlMessage {
+		f |= securityFlagC
+	}
+
+	if len(m.MessageExtensions) > 0 {
+		f |= securityFlagMX
+	}
+
+	if m.IsGroupSession {
+		f |= sessionTypeGroup
+	} else {
+		f |= sessionTypeUnicast
+	}
+
+	return f
+}
+
+func (m Message) header() ([]byte, error) {
+	w := &bytes.Buffer{}
+
+	if err := wire.WriteInt(w, m.messageFlags()); err != nil {
+		return nil, err
+	}
+
+	if err := wire.WriteInt(w, m.SessionID); err != nil {
+		return nil, err
+	}
+
+	if err := wire.WriteInt(w, m.securityFlags()); err != nil {
+		return nil, err
+	}
+
+	if err := wire.WriteInt(w, m.MessageCounter); err != nil {
+		return nil, err
+	}
+
+	if m.SourceNodeID != 0 {
+		if err := wire.WriteInt(w, m.SourceNodeID); err != nil {
+			return nil, err
+		}
+	}
+
+	if m.DestinationNodeID != 0 {
+		if err := wire.WriteInt(w, m.DestinationNodeID); err != nil {
+			return nil, err
+		}
+	} else if m.DestinationGroupID != 0 {
+		if err := wire.WriteInt(w, m.DestinationGroupID); err != nil {
+			return nil, err
+		}
+	}
+
+	return w.Bytes(), nil
+}
+
+func (m Message) payload() ([]byte, error) {
+	w := &bytes.Buffer{}
+
+	if len(m.MessageExtensions) > 0 {
+		if err := wire.WriteString[uint16](w, m.MessageExtensions); err != nil {
+			return nil, err
+		}
+	}
+
+	if _, err := w.Write(m.MessagePayload); err != nil {
+		return nil, err
+	}
+
+	return w.Bytes(), nil
+}
+
+func (m Message) nonce() ([]byte, error) {
+	w := &bytes.Buffer{}
+
+	if err := wire.WriteInt(w, m.securityFlags()); err != nil {
+		return nil, err
+	}
+
+	if err := wire.WriteInt(w, m.MessageCounter); err != nil {
+		return nil, err
+	}
+
+	if err := wire.WriteInt(w, m.SourceNodeID); err != nil {
+		return nil, err
+	}
+
+	return w.Bytes(), nil
 }
 
 const (
