@@ -10,11 +10,11 @@ import (
 
 // NewCCM returns a new CBC-MAC (CCM) mode of operation.
 func NewCCM(c cipher.Block, l, m int) cipher.AEAD {
-	if c.BlockSize() != ccmBlockSize {
+	if c.BlockSize() != blockSize {
 		panic(fmt.Sprintf(
 			"incompatible cipher block size (%d bytes), must be %d bytes",
 			c.BlockSize(),
-			ccmBlockSize,
+			blockSize,
 		))
 	}
 
@@ -35,12 +35,12 @@ func NewCCM(c cipher.Block, l, m int) cipher.AEAD {
 	return &ccm{c, l, m}
 }
 
-// ccmBlockSize is the block size supported by CCM. The cipher must use the same
+// blockSize is the block size supported by CCM. The cipher must use the same
 // block size.
-const ccmBlockSize = 16
+const blockSize = 16
 
 // block is a CCM block.
-type block [ccmBlockSize]byte
+type block [blockSize]byte
 
 // zeroBlock is a block of all zeros.
 var zeroBlock block
@@ -81,8 +81,9 @@ func (c *ccm) seal(nonce, plaintext, additional []byte) ([]byte, error) {
 		)
 	}
 
-	a0, stream := c.keyStream(nonce)
-	mac := c.mac(a0, nonce, plaintext, additional)
+	iv := ctrIV(c.lenSize, nonce)
+	stream := newCTR(c.cipher, iv)
+	mac := c.mac(iv, nonce, plaintext, additional)
 
 	ciphertext := make([]byte, len(plaintext))
 	stream.XORKeyStream(ciphertext, plaintext)
@@ -145,7 +146,7 @@ func (c *ccm) keyStream(nonce []byte) (block, cipher.Stream) {
 	copy(a0[1:], nonce)
 
 	a1 := a0
-	a1[ccmBlockSize-1]++ // increment counter
+	a1[blockSize-1]++ // increment counter
 
 	return a0, cipher.NewCTR(c.cipher, a1[:])
 }
@@ -173,8 +174,8 @@ func (c *ccm) mac(
 	bN = pad(bN)
 
 	for len(bN) > 0 {
-		enc.CryptBlocks(macT[:], bN[:ccmBlockSize])
-		bN = bN[ccmBlockSize:]
+		enc.CryptBlocks(macT[:], bN[:blockSize])
+		bN = bN[blockSize:]
 	}
 
 	var s0 block
@@ -202,7 +203,7 @@ func (c *ccm) macB0(nonce, plaintext, additional []byte) block {
 	// plaintext length ...
 	n := uint64(len(plaintext))
 	for i := 0; i < c.lenSize; i++ {
-		b0[ccmBlockSize-i-1] = byte(n >> (8 * i))
+		b0[blockSize-i-1] = byte(n >> (8 * i))
 	}
 
 	return b0
@@ -236,17 +237,17 @@ func macAppendAdditional(data, additional []byte) []byte {
 // the CCM block size.
 func pad(data []byte) []byte {
 	n := len(data)
-	m := n % ccmBlockSize
+	m := n % blockSize
 
 	return append(
 		data,
-		zeroBlock[:ccmBlockSize-m]...,
+		zeroBlock[:blockSize-m]...,
 	)
 }
 
 // xor returns the result of XORing the two given blocks.
 func xor(a, b block) block {
-	for i := 0; i < ccmBlockSize; i++ {
+	for i := 0; i < blockSize; i++ {
 		a[i] ^= b[i]
 	}
 	return a
