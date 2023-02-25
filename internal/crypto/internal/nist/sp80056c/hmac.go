@@ -14,18 +14,14 @@ func DeriveKeyHMAC(
 	secret, salt, info []byte,
 	size int,
 ) []byte {
-	if len(salt) == 0 {
-		panic("salt must be not be empty")
-	}
-
-	h := hmac.New(algo, salt)
-
 	// 1. If L > 0, then set reps = [L / H_outputBits] otherwise, output an
 	// error indicator and exit this process without performing the remaining
 	// actions (i.e., omitting steps 2 through 8).
 	if size == 0 {
 		panic("length must be greater than zero")
 	}
+
+	h := hmac.New(algo, salt)
 
 	reps := size / h.Size()
 	if size%h.Size() != 0 {
