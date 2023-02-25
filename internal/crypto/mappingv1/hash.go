@@ -1,4 +1,4 @@
-package cryptov1
+package mappingv1
 
 import (
 	"crypto/hmac"

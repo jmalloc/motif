@@ -1,4 +1,4 @@
-package cryptov1_test
+package mappingv1_test
 
 import (
 	"reflect"

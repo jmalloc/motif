@@ -1,9 +1,9 @@
-package cryptov1
+package mappingv1
 
 import (
 	"crypto/sha256"
 
-	"github.com/jmalloc/motif/internal/cryptov1/internal/sp80056c"
+	kdf "github.com/jmalloc/motif/internal/crypto/internal/nist/sp80056c"
 )
 
 // DeriveKey derives an encryption key from an input key.
@@ -11,7 +11,7 @@ import (
 // It corresponds to the Crypto_KDF() function as defined in the Matter Core
 // specification.
 func DeriveKey(inputKey, salt, info []byte, size int) []byte {
-	return sp80056c.DeriveKeyHMAC(
+	return kdf.DeriveKeyHMAC(
 		sha256.New,
 		inputKey,
 		salt,

@@ -1,10 +1,10 @@
-package cryptov1
+package mappingv1
 
 import (
 	"crypto/aes"
 	"crypto/cipher"
 
-	ccm "github.com/jmalloc/motif/internal/cryptov1/internal/sp80038c"
+	ccm "github.com/jmalloc/motif/internal/crypto/internal/nist/sp80038c"
 )
 
 const (

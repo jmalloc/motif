@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"io"
 
-	"github.com/jmalloc/motif/internal/cryptov1"
+	"github.com/jmalloc/motif/internal/crypto/mappingv1"
 	"github.com/jmalloc/motif/internal/wire"
 )
 
@@ -49,7 +49,7 @@ func (m Message) MarshalBinary(p KeyProvider) ([]byte, error) {
 			return nil, err
 		}
 
-		payload, err = cryptov1.Encrypt(key, payload, header, nonce)
+		payload, err = mappingv1.Encrypt(key, payload, header, nonce)
 		if err != nil {
 			return nil, err
 		}
@@ -127,7 +127,7 @@ func (m *Message) UnmarshalBinary(p KeyProvider, data []byte) error {
 			return err
 		}
 
-		plaintext, err := cryptov1.Decrypt(key, ciphertext, header, nonce)
+		plaintext, err := mappingv1.Decrypt(key, ciphertext, header, nonce)
 		if err != nil {
 			return err
 		}

@@ -1,7 +1,7 @@
-package cryptov1_test
+package mappingv1_test
 
 import (
-	. "github.com/jmalloc/motif/internal/cryptov1"
+	. "github.com/jmalloc/motif/internal/crypto/mappingv1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )

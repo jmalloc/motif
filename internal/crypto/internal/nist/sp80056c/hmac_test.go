@@ -4,7 +4,7 @@ import (
 	"crypto/sha256"
 	"hash"
 
-	. "github.com/jmalloc/motif/internal/cryptov1/internal/sp80056c"
+	. "github.com/jmalloc/motif/internal/crypto/internal/nist/sp80056c"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
