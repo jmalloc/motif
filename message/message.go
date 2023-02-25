@@ -2,38 +2,11 @@ package message
 
 import (
 	"bytes"
-	"crypto/aes"
 	"io"
 
-	"github.com/jmalloc/motif/internal/crypto"
+	"github.com/jmalloc/motif/internal/cryptov1"
 	"github.com/jmalloc/motif/internal/wire"
 )
-
-/*
-   static encrypt(msg, key) {
-       var headerSize = 8  // msgFlags (1) + sessionId (2) + secFlags (1) + msgCounter (4)
-       if (msg[0] & MsgCodec.MSG_FLAGS_SRC_PRESENT) { headerSize += 8 }
-       if (msg[0] & MsgCodec.MSG_FLAGS_DST_PRESENT) { headerSize += 8 }
-       if (msg[0] & MsgCodec.MSG_FLAGS_DST_GROUP) { headerSize += 2 }
-
-       const nonce = MsgCodec.getNonce(msg)      // number used only once
-       const aad = msg.subarray(0,headerSize)    // additional authenticated data
-       const pay = msg.subarray(headerSize)      // plaintext payload to be encrypted
-
-       logger.trace("AAD:  " + aad.toString('hex'))
-       logger.trace("Plain:  " + pay.toString('hex'))
-
-       // TODO(#8): move AES-CCM into crypto/Crypto.js
-       var cipher = crypto.createCipheriv("aes-128-ccm", key, nonce, {authTagLength: 16})
-       cipher.setAAD(aad, { plaintextLength: pay.length })
-       var encrypted = Buffer.concat([cipher.update(pay), cipher.final()])
-       var tag = cipher.getAuthTag()
-
-       logger.trace("Tag:  " + tag.toString('hex'))
-
-       return Buffer.concat([aad, encrypted, tag])
-   }
-*/
 
 // KeyProvider is a function that locates the encryption/decryption key to use
 // based on the session ID.
@@ -66,12 +39,7 @@ func (m Message) MarshalBinary(p KeyProvider) ([]byte, error) {
 	}
 
 	if m.SessionID != 0 {
-		k, err := p(m.SessionID)
-		if err != nil {
-			return nil, err
-		}
-
-		cipher, err := aes.NewCipher(k)
+		key, err := p(m.SessionID)
 		if err != nil {
 			return nil, err
 		}
@@ -81,8 +49,10 @@ func (m Message) MarshalBinary(p KeyProvider) ([]byte, error) {
 			return nil, err
 		}
 
-		ccm := crypto.NewCCM(cipher, 2, 16)
-		payload = ccm.Seal(nil, nonce, payload, header)
+		payload, err = cryptov1.Encrypt(key, payload, header, nonce)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	w := &bytes.Buffer{}
@@ -142,12 +112,7 @@ func (m *Message) UnmarshalBinary(p KeyProvider, data []byte) error {
 		}
 		header := data[:offset]
 
-		k, err := p(m.SessionID)
-		if err != nil {
-			return err
-		}
-
-		cipher, err := aes.NewCipher(k)
+		key, err := p(m.SessionID)
 		if err != nil {
 			return err
 		}
@@ -162,8 +127,7 @@ func (m *Message) UnmarshalBinary(p KeyProvider, data []byte) error {
 			return err
 		}
 
-		ccm := crypto.NewCCM(cipher, 2, 16)
-		plaintext, err := ccm.Open(nil, nonce, ciphertext, header)
+		plaintext, err := cryptov1.Decrypt(key, ciphertext, header, nonce)
 		if err != nil {
 			return err
 		}

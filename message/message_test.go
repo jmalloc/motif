@@ -210,5 +210,39 @@ var _ = Describe("type Message", func() {
 				0x9b, 0x3c, 0xe6, 0xd4, 0xbb, 0x03, 0x27, 0xd6,
 			},
 		),
+
+		// {
+		// 	name: "private group message",
+		// 	plain: "067ddb8179563412010000000000000002000164ee0e207d",
+		// 	encrypted: "067ddb8179563412010000000000000002002b2f915a66c9596290ebe4408217b3c0c921a2fca4e1",
+		// 	privacy:   "067ddb81d926afce24c8a0981bdd44f4e7302b2f915a66c9596290ebe4408217b3c0c921a2fca4e1",
+
+		// 	encryptKey: "ca92d7a0942d1a511a0e26ad074f4c2f",
+		// 	privacyKey: "bfe9da016a765365f2dd97a9f939e425",
+		// 	privacyNonce: "db7d408217b3c0c921a2fca4e1",
+		// 	nonce: "81795634120100000000000000",
+
+		// 	// Extra fields for deriving the privacy key
+		// 	compressedFabricId: "2906c908d115d362",
+		// 	epochKey: "b0b1b2b3b4b5b6b7b8b9babbbcbdbebf",
+		// 	sessionId: 0xdb7d, // 56157
+		// },
+		// {
+		// 	name: "private group message (retry)",
+		// 	plain: "067ddb8178563412010000000000000002000164ee0e207d",
+		// 	encrypted: "067ddb8178563412010000000000000002005b458675d42d2486dad6944fca22328e6b1e44dc0468",
+		// 	privacy:   "067ddb8131457fc65ec2edafaf0166a065425b458675d42d2486dad6944fca22328e6b1e44dc0468",
+
+		// 	encryptKey: "ca92d7a0942d1a511a0e26ad074f4c2f",
+		// 	privacyKey: "bfe9da016a765365f2dd97a9f939e425",
+		// 	privacyNonce: "db7d4fca22328e6b1e44dc0468",
+		// 	nonce: "81785634120100000000000000",
+
+		// 	// Extra fields for deriving the privacy key
+		// 	compressedFabricId: "2906c908d115d362",
+		// 	epochKey: "b0b1b2b3b4b5b6b7b8b9babbbcbdbebf",
+		// 	sessionId: 0xdb7d, // 56157
+		// },
+
 	)
 })

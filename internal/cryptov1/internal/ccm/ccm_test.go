@@ -1,4 +1,4 @@
-package crypto_test
+package ccm_test
 
 import (
 	"crypto/aes"
@@ -6,7 +6,7 @@ import (
 	"encoding/hex"
 	"strings"
 
-	. "github.com/jmalloc/motif/internal/crypto"
+	. "github.com/jmalloc/motif/internal/cryptov1/internal/ccm"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )

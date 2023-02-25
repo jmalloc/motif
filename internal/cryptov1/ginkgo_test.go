@@ -1,4 +1,4 @@
-package crypto_test
+package cryptov1_test
 
 import (
 	"reflect"

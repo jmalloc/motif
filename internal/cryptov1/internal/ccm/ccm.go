@@ -1,4 +1,4 @@
-package crypto
+package ccm
 
 import (
 	"crypto/cipher"
