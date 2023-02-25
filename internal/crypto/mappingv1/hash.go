@@ -11,20 +11,23 @@ import (
 // Core specification.
 const HashSize = sha256.Size
 
-// Hash returns the hash of the given message.
+// Hash is a cryptographic hash.
+type Hash [HashSize]byte
+
+// ComputeHash returns the hash of the given message.
 //
 // It corresponds to the Crypto_Hash() function as defined in the Matter Core
 // specification.
-func Hash(m []byte) [HashSize]byte {
+func ComputeHash(m []byte) Hash {
 	return sha256.Sum256(m)
 }
 
-// HMAC returns the cryptographic keyed-hash message authentication code of the
+// ComputeHMAC returns the cryptographic keyed-hash message authentication code of the
 // given message.
 //
 // It corresponds to the Crypto_HMAC() function as defined in the Matter Core
 // specification.
-func HMAC(key, data []byte) [HashSize]byte {
+func ComputeHMAC(key, data []byte) Hash {
 	var mac [HashSize]byte
 
 	h := hmac.New(sha256.New, key)

@@ -6,11 +6,11 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("func Hash()", func() {
+var _ = Describe("func ComputeHash()", func() {
 	It("returns an SHA-256 hash", func() {
-		h := Hash([]byte("<data>"))
+		h := ComputeHash([]byte("<data>"))
 		Expect(h).To(Equal(
-			[...]byte{
+			Hash{
 				0xa1, 0x43, 0x3d, 0x50, 0x90, 0xb1, 0x13, 0x1f,
 				0xf8, 0x75, 0x84, 0x0c, 0x66, 0x7a, 0x05, 0xe2,
 				0x9c, 0xf4, 0xc3, 0x7c, 0x17, 0x5e, 0x2a, 0xc1,
@@ -20,11 +20,11 @@ var _ = Describe("func Hash()", func() {
 	})
 })
 
-var _ = Describe("func HMAC()", func() {
+var _ = Describe("func ComputeHMAC()", func() {
 	It("returns an SHA-256 hash", func() {
-		mac := HMAC([]byte("<key>"), []byte("<data>"))
+		mac := ComputeHMAC([]byte("<key>"), []byte("<data>"))
 		Expect(mac).To(Equal(
-			[...]byte{
+			Hash{
 				0x0c, 0x31, 0x31, 0xaf, 0xbe, 0x2e, 0x05, 0x22,
 				0x3a, 0x6e, 0xfe, 0x23, 0x80, 0x34, 0xcc, 0xa4,
 				0x30, 0xf0, 0x1a, 0xf8, 0x07, 0x73, 0xa8, 0x00,
