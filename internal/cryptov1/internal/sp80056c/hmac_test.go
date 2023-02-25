@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("func DeriveWithHMAC()", func() {
+var _ = Describe("func DeriveKeyHMAC()", func() {
 	DescribeTable(
 		"it correctly derives keys",
 		func(
