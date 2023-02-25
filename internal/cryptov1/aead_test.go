@@ -34,7 +34,6 @@ var _ = Describe("func Encrypt() and Decrypt()", func() {
 	})
 
 	It("encrypts and decrypts using CCM (CBC-MAC)", func() {
-
 		result, err := Encrypt(key, payload, additional, nonce)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(result).To(Equal(ciphertext))
