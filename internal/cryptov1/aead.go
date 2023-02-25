@@ -4,7 +4,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 
-	"github.com/jmalloc/motif/internal/cryptov1/internal/ccm"
+	ccm "github.com/jmalloc/motif/internal/cryptov1/internal/sp80038c"
 )
 
 const (

@@ -1,4 +1,4 @@
-package ccm
+package sp80038c
 
 import (
 	"crypto/cipher"

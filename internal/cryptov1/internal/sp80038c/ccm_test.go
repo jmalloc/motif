@@ -1,4 +1,4 @@
-package ccm_test
+package sp80038c_test
 
 import (
 	"crypto/aes"
@@ -6,7 +6,7 @@ import (
 	"encoding/hex"
 	"strings"
 
-	. "github.com/jmalloc/motif/internal/cryptov1/internal/ccm"
+	. "github.com/jmalloc/motif/internal/cryptov1/internal/sp80038c"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )

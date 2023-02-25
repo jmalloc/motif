@@ -1,4 +1,4 @@
-package ccm_test
+package sp80038c_test
 
 import (
 	"reflect"
