@@ -6,8 +6,8 @@ type Value[T any] struct {
 	p bool
 }
 
-// With returns an Optional[T] that contains the given value.
-func With[T any](v T) Value[T] {
+// Some returns an Optional[T] that contains the given value.
+func Some[T any](v T) Value[T] {
 	return Value[T]{v, true}
 }
 

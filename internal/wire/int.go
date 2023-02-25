@@ -65,7 +65,7 @@ func AssignOptionalInt[T constraints.Integer](
 		return err
 	}
 
-	*v = optional.With(x)
+	*v = optional.Some(x)
 
 	return nil
 }

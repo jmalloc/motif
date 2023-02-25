@@ -46,7 +46,7 @@ var _ = Describe("type ProtocolMessage", func() {
 			Entry(
 				"is acknolwedgement",
 				ProtocolMessage{
-					AckMessageCounter: optional.With[uint32](0xdeadbeef),
+					AckMessageCounter: optional.Some[uint32](0xdeadbeef),
 				},
 				[]byte{
 					0x02,       // exchange flags
@@ -104,7 +104,7 @@ var _ = Describe("type ProtocolMessage", func() {
 					ApplicationPayload: []byte("<payload>"),
 					IsFromInitiator:    true,
 					RequiresAck:        true,
-					AckMessageCounter:  optional.With[uint32](0xbaadf00d),
+					AckMessageCounter:  optional.Some[uint32](0xbaadf00d),
 					SecuredExtensions:  []byte("<extensions>"),
 				},
 				[]byte{
