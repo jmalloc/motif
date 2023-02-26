@@ -89,7 +89,7 @@ func (m Message) MarshalBinary(key KeyProvider) ([]byte, error) {
 		if m.UsePrivacyExtensions {
 			setSecurityFlag(data, securityFlagP)
 
-			ciphertext = crypto.PrivacyEncrypt(
+			ciphertext := crypto.PrivacyEncrypt(
 				derivePrivacyKey(encryptionKey),
 				data[messageCounterOffset:headerSize],
 				privacyNonce(data),
