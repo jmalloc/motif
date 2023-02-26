@@ -1,8 +1,8 @@
-package message_test
+package protocol_test
 
 import (
-	. "github.com/jmalloc/motif/message"
 	"github.com/jmalloc/motif/optional"
+	. "github.com/jmalloc/motif/protocol"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -11,19 +11,19 @@ var _ = Describe("type ProtocolMessage", func() {
 	Describe("func MarshalBinary() and UnmarshalBinary()", func() {
 		DescribeTable(
 			"it encodes/decodes protocol messages correctly",
-			func(m ProtocolMessage, data []byte) {
+			func(m Message, data []byte) {
 				d, err := m.MarshalBinary()
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(d).To(Equal(data))
 
-				var u ProtocolMessage
+				var u Message
 				err = u.UnmarshalBinary(d)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(u).To(Equal(m))
 			},
 			Entry(
 				"zero-value",
-				ProtocolMessage{},
+				Message{},
 				[]byte{
 					0x00,       // exchange flags
 					0x00,       // protocol opcode
@@ -33,7 +33,7 @@ var _ = Describe("type ProtocolMessage", func() {
 			),
 			Entry(
 				"is from initiator",
-				ProtocolMessage{
+				Message{
 					IsFromInitiator: true,
 				},
 				[]byte{
@@ -45,7 +45,7 @@ var _ = Describe("type ProtocolMessage", func() {
 			),
 			Entry(
 				"is acknolwedgement",
-				ProtocolMessage{
+				Message{
 					AckMessageCounter: optional.Some[uint32](0xdeadbeef),
 				},
 				[]byte{
@@ -58,7 +58,7 @@ var _ = Describe("type ProtocolMessage", func() {
 			),
 			Entry(
 				"requires acknowledgement",
-				ProtocolMessage{
+				Message{
 					RequiresAck: true,
 				},
 				[]byte{
@@ -70,7 +70,7 @@ var _ = Describe("type ProtocolMessage", func() {
 			),
 			Entry(
 				"with secured extensions",
-				ProtocolMessage{
+				Message{
 					SecuredExtensions: []byte("<extensions>"),
 				},
 				[]byte{
@@ -83,7 +83,7 @@ var _ = Describe("type ProtocolMessage", func() {
 			),
 			Entry(
 				"has protocol vendor ID",
-				ProtocolMessage{
+				Message{
 					ProtocolVendorID: 42020,
 				},
 				[]byte{
@@ -96,7 +96,7 @@ var _ = Describe("type ProtocolMessage", func() {
 			),
 			Entry(
 				"all fields populated",
-				ProtocolMessage{
+				Message{
 					ExchangeID:         41010,
 					ProtocolVendorID:   42020,
 					ProtocolID:         43030,

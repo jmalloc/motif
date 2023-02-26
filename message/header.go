@@ -24,7 +24,8 @@ const (
 	nodeIDSize                 = 8
 	groupIDSize                = 2
 
-	minHeaderSize = messageFlagsSize + sessionIDSize + securityFlagsSize + messageCounterSize
+	minHeaderSize        = messageFlagsSize + sessionIDSize + securityFlagsSize + messageCounterSize
+	extensionsLengthSize = 2
 )
 
 const (
@@ -54,8 +55,12 @@ func hasMessageFlag(header []byte, flag uint8) bool {
 }
 
 // setMessageFlag sets the given message flag in the header.
-func setMessageFlag(header []byte, flag uint8) {
-	header[messageFlagsOffset] |= flag
+func setMessageFlag(header []byte, flag uint8, on bool) {
+	if on {
+		header[messageFlagsOffset] |= flag
+	} else {
+		header[messageFlagsOffset] &^= flag
+	}
 }
 
 const (
@@ -91,8 +96,12 @@ func hasSecurityFlag(header []byte, flag uint8) bool {
 }
 
 // setSecurityFlag sets the given security flag in the header.
-func setSecurityFlag(header []byte, flag uint8) {
-	header[securityFlagsOffset] |= flag
+func setSecurityFlag(header []byte, flag uint8, on bool) {
+	if on {
+		header[securityFlagsOffset] |= flag
+	} else {
+		header[securityFlagsOffset] &^= flag
+	}
 }
 
 // securityNonce returns the nonce to use for encrypting/decrypting the message
@@ -165,10 +174,7 @@ func splitPacket(data []byte) (header, destination, payload []byte, err error) {
 	payloadOffset := n
 
 	if hasSecurityFlag(data, securityFlagMX) {
-		// we can't read the actual length of the extensions because it may be
-		// encrypted so we just add the 2 bytes used to store the extensions'
-		// length
-		n += 2
+		n += extensionsLengthSize
 	}
 
 	if len(data) < n {

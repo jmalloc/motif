@@ -42,35 +42,27 @@ func (m Message) MarshalBinary(key KeyProvider) ([]byte, error) {
 	data = append(data, 0) // security flags
 	data = binary.LittleEndian.AppendUint32(data, m.MessageCounter)
 
-	if m.IsGroupSession {
-		setSecurityFlag(data, sessionTypeGroup)
-	}
-
-	if m.IsControlMessage {
-		setMessageFlag(data, securityFlagC)
-	}
-
-	if m.UsePrivacyExtensions {
-		setSecurityFlag(data, securityFlagP)
-	}
+	setSecurityFlag(data, sessionTypeGroup, m.IsGroupSession)
+	setMessageFlag(data, securityFlagC, m.IsControlMessage)
+	setSecurityFlag(data, securityFlagP, m.UsePrivacyExtensions)
 
 	if m.SourceNodeID != 0 {
-		setMessageFlag(data, messageFlagS)
+		setMessageFlag(data, messageFlagS, true)
 		data = binary.LittleEndian.AppendUint64(data, m.SourceNodeID)
 	}
 
 	if m.DestinationNodeID != 0 {
-		setMessageFlag(data, messageFlagDSIZNodeID)
+		setMessageFlag(data, messageFlagDSIZNodeID, true)
 		data = binary.LittleEndian.AppendUint64(data, m.DestinationNodeID)
 	} else if m.DestinationGroupID != 0 {
-		setMessageFlag(data, messageFlagDSIZGroupID)
+		setMessageFlag(data, messageFlagDSIZGroupID, true)
 		data = binary.LittleEndian.AppendUint16(data, m.DestinationGroupID)
 	}
 
 	headerSize := len(data)
 
 	if size := uint16(len(m.MessageExtensions)); size != 0 {
-		setSecurityFlag(data, securityFlagMX)
+		setSecurityFlag(data, securityFlagMX, true)
 		data = binary.LittleEndian.AppendUint16(data, size)
 		data = append(data, m.MessageExtensions...)
 	}
@@ -167,9 +159,10 @@ func (m *Message) UnmarshalBinary(key KeyProvider, data []byte) error {
 		m.DestinationGroupID = 0
 	}
 
+	m.MessageExtensions = nil
 	if hasSecurityFlag(header, securityFlagMX) {
 		size := int(binary.LittleEndian.Uint16(payload))
-		payload = payload[2:]
+		payload = payload[extensionsLengthSize:]
 
 		if len(payload) < size {
 			return fmt.Errorf("message extensions length is %d, but only %d bytes are available", size, len(payload))
@@ -184,6 +177,8 @@ func (m *Message) UnmarshalBinary(key KeyProvider, data []byte) error {
 
 	if len(payload) > 0 {
 		m.MessagePayload = slices.Clone(payload)
+	} else {
+		m.MessagePayload = nil
 	}
 
 	return nil
