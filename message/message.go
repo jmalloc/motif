@@ -4,70 +4,106 @@ import (
 	"bytes"
 	"io"
 
-	"github.com/jmalloc/motif/internal/crypto/mappingv1"
+	"github.com/jmalloc/motif/internal/crypto/chipcompat"
+	crypto "github.com/jmalloc/motif/internal/crypto/mappingv1"
 	"github.com/jmalloc/motif/internal/wire"
 )
 
 // KeyProvider is a function that locates the encryption/decryption key to use
 // based on the session ID.
-type KeyProvider func(sessionID uint16) ([]byte, error)
+type KeyProvider func(sessionID uint16) (crypto.SymmetricKey, error)
 
 // Message is a Matter message frame.
 type Message struct {
-	SessionID              uint16
-	IsGroupSession         bool
-	SourceNodeID           uint64
-	DestinationNodeID      uint64
-	DestinationGroupID     uint16
-	MessageCounter         uint32
-	MessagePayload         []byte
-	IsControlMessage       bool
-	HasPrivacyEnhancements bool
-	MessageExtensions      []byte
+	SessionID            uint16
+	IsGroupSession       bool
+	IsControlMessage     bool
+	UsePrivacyExtensions bool
+	SourceNodeID         uint64
+	DestinationNodeID    uint64
+	DestinationGroupID   uint16
+	MessageCounter       uint32
+	MessagePayload       []byte
+	MessageExtensions    []byte
 }
 
 // MarshalBinary returns the binary representation of m.
-func (m Message) MarshalBinary(p KeyProvider) ([]byte, error) {
-	header, err := m.header()
-	if err != nil {
-		return nil, err
+func (m Message) MarshalBinary(key KeyProvider) ([]byte, error) {
+	var data []byte
+
+	data = wire.AppendInt(data, uint8(0)) // message flags
+	data = wire.AppendInt(data, m.SessionID)
+	data = wire.AppendInt(data, uint8(0)) // security flags
+	data = wire.AppendInt(data, m.MessageCounter)
+
+	if m.IsGroupSession {
+		setSecurityFlag(data, sessionTypeGroup)
 	}
 
-	payload, err := m.payload()
-	if err != nil {
-		return nil, err
+	if m.IsControlMessage {
+		setMessageFlag(data, securityFlagC)
 	}
+
+	if m.SourceNodeID != 0 {
+		setMessageFlag(data, messageFlagS)
+		data = wire.AppendInt(data, m.SourceNodeID)
+	}
+
+	if m.DestinationNodeID != 0 {
+		setMessageFlag(data, messageFlagDSIZNodeID)
+		data = wire.AppendInt(data, m.DestinationNodeID)
+	} else if m.DestinationGroupID != 0 {
+		setMessageFlag(data, messageFlagDSIZGroupID)
+		data = wire.AppendInt(data, m.DestinationGroupID)
+	}
+
+	headerSize := len(data)
+
+	if size := len(m.MessageExtensions); size > 0 {
+		setSecurityFlag(data, securityFlagMX)
+		data = wire.AppendString[uint16](data, m.MessageExtensions)
+	}
+
+	data = append(data, m.MessagePayload...)
 
 	if m.SessionID != 0 {
-		key, err := p(m.SessionID)
+		encryptionKey, err := key(m.SessionID)
 		if err != nil {
 			return nil, err
 		}
 
-		nonce, err := m.nonce()
+		ciphertext, err := crypto.AEADEncrypt(
+			encryptionKey,
+			data[headerSize:],
+			data[:headerSize],
+			securityNonce(data),
+		)
 		if err != nil {
 			return nil, err
 		}
 
-		payload, err = mappingv1.Encrypt(key, payload, header, nonce)
-		if err != nil {
-			return nil, err
+		data = append(data[:headerSize], ciphertext...)
+
+		if m.UsePrivacyExtensions {
+			setSecurityFlag(data, securityFlagP)
+
+			ciphertext = crypto.PrivacyEncrypt(
+				derivePrivacyKey(encryptionKey),
+				data[messageCounterOffset:headerSize],
+				privacyNonce(data),
+			)
+			copy(data[messageCounterOffset:], ciphertext)
 		}
 	}
 
-	w := &bytes.Buffer{}
-	w.Write(header)
-	w.Write(payload)
-
-	return w.Bytes(), nil
+	return data, nil
 }
 
 // UnmarshalBinary sets m to the value represented by data.
-func (m *Message) UnmarshalBinary(p KeyProvider, data []byte) error {
+func (m *Message) UnmarshalBinary(key KeyProvider, data []byte) error {
 	r := bytes.NewReader(data)
 
-	messageFlags, err := wire.ReadInt[uint8](r)
-	if err != nil {
+	if _, err := r.Seek(sessionIDOffset, io.SeekStart); err != nil {
 		return err
 	}
 
@@ -75,59 +111,59 @@ func (m *Message) UnmarshalBinary(p KeyProvider, data []byte) error {
 		return err
 	}
 
-	securityFlags, err := wire.ReadInt[uint8](r)
-	if err != nil {
+	if _, err := r.Seek(messageCounterOffset, io.SeekStart); err != nil {
 		return err
 	}
-
-	m.IsGroupSession = securityFlags&sessionTypeGroup != 0
-	m.IsControlMessage = securityFlags&securityFlagC != 0
 
 	if err := wire.AssignInt(r, &m.MessageCounter); err != nil {
 		return err
 	}
 
-	if messageFlags&messageFlagS == 0 {
+	if !hasMessageFlag(data, messageFlagS) {
 		m.SourceNodeID = 0
 	} else if err := wire.AssignInt(r, &m.SourceNodeID); err != nil {
 		return err
 	}
 
-	if messageFlags&messageFlagDSIZNodeID == 0 {
+	if !hasMessageFlag(data, messageFlagDSIZNodeID) {
 		m.DestinationNodeID = 0
-	} else if wire.AssignInt(r, &m.DestinationNodeID); err != nil {
+	} else if err := wire.AssignInt(r, &m.DestinationNodeID); err != nil {
 		return err
 	}
 
-	if messageFlags&messageFlagDSIZGroupID == 0 {
+	if !hasMessageFlag(data, messageFlagDSIZGroupID) {
 		m.DestinationGroupID = 0
 	} else if err := wire.AssignInt(r, &m.DestinationGroupID); err != nil {
 		return err
 	}
 
+	m.IsGroupSession = hasSecurityFlag(data, sessionTypeGroup)
+	m.IsControlMessage = hasSecurityFlag(data, securityFlagC)
+	m.UsePrivacyExtensions = hasSecurityFlag(data, securityFlagP)
+
+	headerSize, _ := r.Seek(0, io.SeekCurrent)
+
 	if m.SessionID != 0 {
-		offset, err := r.Seek(0, io.SeekCurrent) // tell
-		if err != nil {
-			return err
-		}
-		header := data[:offset]
-
-		key, err := p(m.SessionID)
+		encryptionKey, err := key(m.SessionID)
 		if err != nil {
 			return err
 		}
 
-		ciphertext, err := io.ReadAll(r)
-		if err != nil {
-			return err
+		if m.UsePrivacyExtensions {
+			plaintext := crypto.PrivacyDecrypt(
+				derivePrivacyKey(encryptionKey),
+				data[messageCounterOffset:headerSize],
+				privacyNonce(data),
+			)
+			copy(data[messageCounterOffset:], plaintext)
 		}
 
-		nonce, err := m.nonce()
-		if err != nil {
-			return err
-		}
-
-		plaintext, err := mappingv1.Decrypt(key, ciphertext, header, nonce)
+		plaintext, err := crypto.AEADDecrypt(
+			encryptionKey,
+			data[headerSize:],
+			data[:headerSize],
+			securityNonce(data),
+		)
 		if err != nil {
 			return err
 		}
@@ -135,7 +171,7 @@ func (m *Message) UnmarshalBinary(p KeyProvider, data []byte) error {
 		r.Reset(plaintext)
 	}
 
-	if securityFlags&securityFlagMX == 0 {
+	if !hasSecurityFlag(data, securityFlagMX) {
 		m.MessageExtensions = nil
 	} else if err := wire.AssignString[uint16](r, &m.MessageExtensions); err != nil {
 		return err
@@ -144,164 +180,11 @@ func (m *Message) UnmarshalBinary(p KeyProvider, data []byte) error {
 	return wire.AssignRemaining(r, &m.MessagePayload)
 }
 
-func (m Message) messageFlags() byte {
-	var f byte
-
-	if m.SourceNodeID != 0 {
-		f |= messageFlagS
-	}
-
-	if m.DestinationNodeID != 0 {
-		f |= messageFlagDSIZNodeID
-	}
-
-	if m.DestinationGroupID != 0 {
-		if m.DestinationNodeID != 0 {
-			panic("cannot use both destination node ID and destination group ID")
-		}
-
-		f |= messageFlagDSIZGroupID
-	}
-
-	return f
+// derivePrivacyKey derives a privacy key from an encryption key.
+func derivePrivacyKey(encryptionKey crypto.SymmetricKey) crypto.SymmetricKey {
+	return chipcompat.DeriveKey(
+		encryptionKey,
+		nil, // salt
+		[]byte("PrivacyKey"),
+	)
 }
-
-func (m Message) securityFlags() byte {
-	var f uint8
-
-	if m.HasPrivacyEnhancements {
-		f |= securityFlagP
-	}
-
-	if m.IsControlMessage {
-		f |= securityFlagC
-	}
-
-	if len(m.MessageExtensions) > 0 {
-		f |= securityFlagMX
-	}
-
-	if m.IsGroupSession {
-		f |= sessionTypeGroup
-	} else {
-		f |= sessionTypeUnicast
-	}
-
-	return f
-}
-
-func (m Message) header() ([]byte, error) {
-	w := &bytes.Buffer{}
-
-	if err := wire.WriteInt(w, m.messageFlags()); err != nil {
-		return nil, err
-	}
-
-	if err := wire.WriteInt(w, m.SessionID); err != nil {
-		return nil, err
-	}
-
-	if err := wire.WriteInt(w, m.securityFlags()); err != nil {
-		return nil, err
-	}
-
-	if err := wire.WriteInt(w, m.MessageCounter); err != nil {
-		return nil, err
-	}
-
-	if m.SourceNodeID != 0 {
-		if err := wire.WriteInt(w, m.SourceNodeID); err != nil {
-			return nil, err
-		}
-	}
-
-	if m.DestinationNodeID != 0 {
-		if err := wire.WriteInt(w, m.DestinationNodeID); err != nil {
-			return nil, err
-		}
-	} else if m.DestinationGroupID != 0 {
-		if err := wire.WriteInt(w, m.DestinationGroupID); err != nil {
-			return nil, err
-		}
-	}
-
-	return w.Bytes(), nil
-}
-
-func (m Message) payload() ([]byte, error) {
-	w := &bytes.Buffer{}
-
-	if len(m.MessageExtensions) > 0 {
-		if err := wire.WriteString[uint16](w, m.MessageExtensions); err != nil {
-			return nil, err
-		}
-	}
-
-	if _, err := w.Write(m.MessagePayload); err != nil {
-		return nil, err
-	}
-
-	return w.Bytes(), nil
-}
-
-func (m Message) nonce() ([]byte, error) {
-	w := &bytes.Buffer{}
-
-	if err := wire.WriteInt(w, m.securityFlags()); err != nil {
-		return nil, err
-	}
-
-	if err := wire.WriteInt(w, m.MessageCounter); err != nil {
-		return nil, err
-	}
-
-	if err := wire.WriteInt(w, m.SourceNodeID); err != nil {
-		return nil, err
-	}
-
-	return w.Bytes(), nil
-}
-
-const (
-	// messageFlagS is a bit-mask that isolates the "S" sub-field of the
-	// "message flags" bit-field. The "S" sub-field is a boolean that indicates
-	// whether the message has a "source node ID" field.
-	messageFlagS = 0b000_0_1_00
-
-	// messageFlagDSIZNodeID is a value of the "DSIZ" sub-field of the "message
-	// flags" bit-field. It indicates that the message has a "destination node
-	// ID" field.
-	messageFlagDSIZNodeID = 0b000_0_0_01
-
-	// messageFlagDSIZGroupID is a value of the "DSIZ" sub-field of the "message
-	// flags" bit-field. It indicates that the message has a "destination group
-	// ID" field.
-	messageFlagDSIZGroupID = 0b000_0_0_10
-)
-
-const (
-	// securityFlagP is a bit-mask that isolates the "P" sub-field of the
-	// "security flags" bit-field. The "P" sub-field is a boolean that indicates
-	// whether the message uses privacy enhancements.
-	securityFlagP = 0b100_000_00
-
-	// securityFlagC is a bit-mask that isolates the "C" sub-field of the
-	// "security flags" bit-field. The "C" sub-field is a boolean that indicates
-	// whether the message is a control message.
-	securityFlagC = 0b010_000_00
-
-	// securityFlagMX is a bit-mask that isolates the "MX" sub-field of the
-	// "security flags" bit-field. The "MX" sub-field is a boolean that
-	// indicates whether the message has a "message extensions" field.
-	securityFlagMX = 0b001_000_00
-
-	// sessionTypeUnicast is a value of the "session type" sub-field of the
-	// "security flags" bit-field. It indicates that the message is being sent
-	// within a unicast session.
-	sessionTypeUnicast = 0b000_000_00
-
-	// sessionTypeGroup is a value of the "session type" sub-field of the
-	// "security flags" bit-field. It indicates that the message is being sent
-	// within a group session.
-	sessionTypeGroup = 0b000_000_01
-)
