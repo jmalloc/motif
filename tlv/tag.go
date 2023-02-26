@@ -3,8 +3,6 @@ package tlv
 import (
 	"bytes"
 	"io"
-
-	"github.com/jmalloc/motif/internal/wire"
 )
 
 // Tag is an interface for a TLV tag.
@@ -172,23 +170,23 @@ func (w *payloadWriter) VisitAnonymousTag() error {
 }
 
 func (w *payloadWriter) VisitContextSpecificTag(t ContextSpecificTag) error {
-	return wire.WriteInt(w, t)
+	return writeInt(w, t)
 }
 
 func (w *payloadWriter) VisitCommonProfileTag2(t CommonProfileTag2) error {
-	return wire.WriteInt(w, t)
+	return writeInt(w, t)
 }
 
 func (w *payloadWriter) VisitCommonProfileTag4(t CommonProfileTag4) error {
-	return wire.WriteInt(w, t)
+	return writeInt(w, t)
 }
 
 func (w *payloadWriter) VisitImplicitProfileTag2(t ImplicitProfileTag2) error {
-	return wire.WriteInt(w, t)
+	return writeInt(w, t)
 }
 
 func (w *payloadWriter) VisitImplicitProfileTag4(t ImplicitProfileTag4) error {
-	return wire.WriteInt(w, t)
+	return writeInt(w, t)
 }
 
 func (w *payloadWriter) VisitFullyQualifiedTag6(t FullyQualifiedTag6) error {
@@ -204,15 +202,15 @@ func marshalFullyQualifiedTag[T uint16 | uint32](
 	vendor, profile uint16,
 	tag T,
 ) error {
-	if err := wire.WriteInt(w, vendor); err != nil {
+	if err := writeInt(w, vendor); err != nil {
 		return err
 	}
 
-	if err := wire.WriteInt(w, profile); err != nil {
+	if err := writeInt(w, profile); err != nil {
 		return err
 	}
 
-	if err := wire.WriteInt(w, tag); err != nil {
+	if err := writeInt(w, tag); err != nil {
 		return err
 	}
 
@@ -224,15 +222,15 @@ func unmarshalTag(r *bytes.Reader, c byte) (Tag, error) {
 	default:
 		return AnonymousTag, nil
 	case contextSpecificTagForm:
-		return wire.ReadInt[ContextSpecificTag](r)
+		return readInt[ContextSpecificTag](r)
 	case commonProfileTag2Form:
-		return wire.ReadInt[CommonProfileTag2](r)
+		return readInt[CommonProfileTag2](r)
 	case commonProfileTag4Form:
-		return wire.ReadInt[CommonProfileTag4](r)
+		return readInt[CommonProfileTag4](r)
 	case implicitProfileTag2Form:
-		return wire.ReadInt[ImplicitProfileTag2](r)
+		return readInt[ImplicitProfileTag2](r)
 	case implicitProfileTag4Form:
-		return wire.ReadInt[ImplicitProfileTag4](r)
+		return readInt[ImplicitProfileTag4](r)
 	case fullyQualifiedTag6Form:
 		return unmarshalFullyQualifiedTag6(r)
 	case fullyQualifiedTag8Form:
@@ -265,15 +263,15 @@ func unmarshalFullyQualifiedTag[T uint16 | uint32](
 	vendor, profile *uint16,
 	tag *T,
 ) error {
-	if err := wire.AssignInt(r, vendor); err != nil {
+	if err := assignInt(r, vendor); err != nil {
 		return err
 	}
 
-	if err := wire.AssignInt(r, profile); err != nil {
+	if err := assignInt(r, profile); err != nil {
 		return err
 	}
 
-	if err := wire.AssignInt(r, tag); err != nil {
+	if err := assignInt(r, tag); err != nil {
 		return err
 	}
 

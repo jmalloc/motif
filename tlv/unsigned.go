@@ -1,7 +1,5 @@
 package tlv
 
-import "github.com/jmalloc/motif/internal/wire"
-
 type (
 	// Unsigned1 is a signed 1 octet unsigned integer.
 	Unsigned1 uint8
@@ -40,19 +38,19 @@ const (
 )
 
 func (m payloadWriter) VisitUnsigned1(u Unsigned1) error {
-	return wire.WriteInt(m, u)
+	return writeInt(m, u)
 }
 
 func (m payloadWriter) VisitUnsigned2(u Unsigned2) error {
-	return wire.WriteInt(m, u)
+	return writeInt(m, u)
 }
 
 func (m payloadWriter) VisitUnsigned4(u Unsigned4) error {
-	return wire.WriteInt(m, u)
+	return writeInt(m, u)
 }
 
 func (m payloadWriter) VisitUnsigned8(u Unsigned8) error {
-	return wire.WriteInt(m, u)
+	return writeInt(m, u)
 }
 
 func (c *controlWriter) VisitUnsigned1(u Unsigned1) error {

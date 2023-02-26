@@ -3,8 +3,6 @@ package tlv
 import (
 	"bytes"
 	"math"
-
-	"github.com/jmalloc/motif/internal/wire"
 )
 
 type (
@@ -37,7 +35,7 @@ func (c *controlWriter) VisitDouble(v Double) error {
 }
 
 func (w *payloadWriter) VisitSingle(v Single) error {
-	return wire.WriteInt(
+	return writeInt(
 		w,
 		math.Float32bits(
 			float32(v),
@@ -46,7 +44,7 @@ func (w *payloadWriter) VisitSingle(v Single) error {
 }
 
 func (w *payloadWriter) VisitDouble(v Double) error {
-	return wire.WriteInt(
+	return writeInt(
 		w,
 		math.Float64bits(
 			float64(v),
@@ -55,7 +53,7 @@ func (w *payloadWriter) VisitDouble(v Double) error {
 }
 
 func unmarshalSingle(r *bytes.Reader) (Single, error) {
-	n, err := wire.ReadInt[uint32](r)
+	n, err := readInt[uint32](r)
 	if err != nil {
 		return 0, err
 	}
@@ -66,7 +64,7 @@ func unmarshalSingle(r *bytes.Reader) (Single, error) {
 }
 
 func unmarshalDouble(r *bytes.Reader) (Double, error) {
-	n, err := wire.ReadInt[uint64](r)
+	n, err := readInt[uint64](r)
 	if err != nil {
 		return 0, err
 	}

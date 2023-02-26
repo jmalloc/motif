@@ -1,7 +1,5 @@
 package tlv
 
-import "github.com/jmalloc/motif/internal/wire"
-
 type (
 	// UTF8String1 is a UTF-8 string with a length that can be represented by a
 	// 1 octet integer.
@@ -44,19 +42,19 @@ const (
 )
 
 func (m payloadWriter) VisitUTF8String1(s UTF8String1) error {
-	return wire.WriteString[uint8](m, s)
+	return writeString[uint8](m, s)
 }
 
 func (m payloadWriter) VisitUTF8String2(s UTF8String2) error {
-	return wire.WriteString[uint16](m, s)
+	return writeString[uint16](m, s)
 }
 
 func (m payloadWriter) VisitUTF8String4(s UTF8String4) error {
-	return wire.WriteString[uint32](m, s)
+	return writeString[uint32](m, s)
 }
 
 func (m payloadWriter) VisitUTF8String8(s UTF8String8) error {
-	return wire.WriteString[uint64](m, s)
+	return writeString[uint64](m, s)
 }
 
 func (c *controlWriter) VisitUTF8String1(s UTF8String1) error {

@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"io"
-
-	"github.com/jmalloc/motif/internal/wire"
 )
 
 // Element is a TLV element.
@@ -74,7 +72,7 @@ func marshalElement(w io.Writer, t Tag, v Value) error {
 		return err
 	}
 
-	if err := wire.WriteInt(w, c); err != nil {
+	if err := writeInt(w, c); err != nil {
 		return err
 	}
 

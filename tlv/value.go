@@ -3,8 +3,6 @@ package tlv
 import (
 	"bytes"
 	"fmt"
-
-	"github.com/jmalloc/motif/internal/wire"
 )
 
 // Value is an interface for a TLV value.
@@ -47,21 +45,21 @@ func VisitValue(v Value, vis ValueVisitor) error {
 func unmarshalValue(r *bytes.Reader, c byte) (Value, error) {
 	switch c & typeMask {
 	case signed1Type:
-		return wire.ReadInt[Signed1](r)
+		return readInt[Signed1](r)
 	case signed2Type:
-		return wire.ReadInt[Signed2](r)
+		return readInt[Signed2](r)
 	case signed4Type:
-		return wire.ReadInt[Signed4](r)
+		return readInt[Signed4](r)
 	case signed8Type:
-		return wire.ReadInt[Signed8](r)
+		return readInt[Signed8](r)
 	case unsigned1Type:
-		return wire.ReadInt[Unsigned1](r)
+		return readInt[Unsigned1](r)
 	case unsigned2Type:
-		return wire.ReadInt[Unsigned2](r)
+		return readInt[Unsigned2](r)
 	case unsigned4Type:
-		return wire.ReadInt[Unsigned4](r)
+		return readInt[Unsigned4](r)
 	case unsigned8Type:
-		return wire.ReadInt[Unsigned8](r)
+		return readInt[Unsigned8](r)
 	case boolFalseType:
 		return False, nil
 	case boolTrueType:
@@ -79,21 +77,21 @@ func unmarshalValue(r *bytes.Reader, c byte) (Value, error) {
 	case listType:
 		return unmarshalList(r)
 	case utf8String1Type:
-		return wire.ReadString[uint8, UTF8String1](r)
+		return readString[uint8, UTF8String1](r)
 	case utf8String2Type:
-		return wire.ReadString[uint16, UTF8String2](r)
+		return readString[uint16, UTF8String2](r)
 	case utf8String4Type:
-		return wire.ReadString[uint32, UTF8String4](r)
+		return readString[uint32, UTF8String4](r)
 	case utf8String8Type:
-		return wire.ReadString[uint64, UTF8String8](r)
+		return readString[uint64, UTF8String8](r)
 	case octetString1Type:
-		return wire.ReadString[uint8, OctetString1](r)
+		return readString[uint8, OctetString1](r)
 	case octetString2Type:
-		return wire.ReadString[uint16, OctetString2](r)
+		return readString[uint16, OctetString2](r)
 	case octetString4Type:
-		return wire.ReadString[uint32, OctetString4](r)
+		return readString[uint32, OctetString4](r)
 	case octetString8Type:
-		return wire.ReadString[uint64, OctetString8](r)
+		return readString[uint64, OctetString8](r)
 	default:
 		return nil, fmt.Errorf("unrecognized type (%x)", c&typeMask)
 	}

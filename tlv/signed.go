@@ -1,7 +1,5 @@
 package tlv
 
-import "github.com/jmalloc/motif/internal/wire"
-
 type (
 	// Signed1 is a signed 1 octet signed integer.
 	Signed1 int8
@@ -56,17 +54,17 @@ func (w *controlWriter) VisitSigned8(v Signed8) error {
 }
 
 func (w *payloadWriter) VisitSigned1(v Signed1) error {
-	return wire.WriteInt(w, v)
+	return writeInt(w, v)
 }
 
 func (w *payloadWriter) VisitSigned2(v Signed2) error {
-	return wire.WriteInt(w, v)
+	return writeInt(w, v)
 }
 
 func (w *payloadWriter) VisitSigned4(v Signed4) error {
-	return wire.WriteInt(w, v)
+	return writeInt(w, v)
 }
 
 func (w *payloadWriter) VisitSigned8(v Signed8) error {
-	return wire.WriteInt(w, v)
+	return writeInt(w, v)
 }

@@ -1,7 +1,5 @@
 package tlv
 
-import "github.com/jmalloc/motif/internal/wire"
-
 type (
 	// OctetString1 is an octet string with a length that can be represented by
 	// a 1 octet integer.
@@ -44,19 +42,19 @@ const (
 )
 
 func (m *payloadWriter) VisitOctetString1(v OctetString1) error {
-	return wire.WriteString[uint8](m, v)
+	return writeString[uint8](m, v)
 }
 
 func (m *payloadWriter) VisitOctetString2(v OctetString2) error {
-	return wire.WriteString[uint16](m, v)
+	return writeString[uint16](m, v)
 }
 
 func (m *payloadWriter) VisitOctetString4(v OctetString4) error {
-	return wire.WriteString[uint32](m, v)
+	return writeString[uint32](m, v)
 }
 
 func (m *payloadWriter) VisitOctetString8(v OctetString8) error {
-	return wire.WriteString[uint64](m, v)
+	return writeString[uint64](m, v)
 }
 
 func (c *controlWriter) VisitOctetString1(v OctetString1) error {
