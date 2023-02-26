@@ -8,17 +8,14 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-// AppendInt appends an integer to data in little-endian order and returns the
-// result.
-func AppendInt[T constraints.Integer](data []byte, n T) []byte {
+// AppendInt appends an integer to *data in little-endian order.
+func AppendInt[T constraints.Integer](data *[]byte, n T) {
 	size := int(unsafe.Sizeof(n))
 
 	for i := 0; i < size; i++ {
 		shift := 8 * i
-		data = append(data, byte(n>>shift))
+		*data = append(*data, byte(n>>shift))
 	}
-
-	return data
 }
 
 // WriteInt writes an integer to w in little-endian order.

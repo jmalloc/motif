@@ -7,22 +7,22 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-// AppendString appends an (octet or UTF-8) string to data and returns the
-// result.
+// AppendString appends an (octet or UTF-8) string to *data.
 func AppendString[
 	L constraints.Unsigned,
 	T ~string | ~[]byte,
-](data []byte, s T) []byte {
+](data *[]byte, s T) error {
 	lenInt := len(s)
 	lenL := L(lenInt)
 
 	if int(lenL) != lenInt {
-		panic(fmt.Sprintf("string too long to encode length as %T", lenL))
+		return fmt.Errorf("string too long to encode length as %T", lenL)
 	}
 
-	data = AppendInt(data, lenL)
-	data = append(data, []byte(s)...)
-	return data
+	AppendInt(data, lenL)
+	*data = append(*data, []byte(s)...)
+
+	return nil
 }
 
 // WriteString writes an (octet or UTF-8) string to w.

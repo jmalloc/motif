@@ -31,10 +31,10 @@ type Message struct {
 func (m Message) MarshalBinary(key KeyProvider) ([]byte, error) {
 	var data []byte
 
-	data = wire.AppendInt(data, uint8(0)) // message flags
-	data = wire.AppendInt(data, m.SessionID)
-	data = wire.AppendInt(data, uint8(0)) // security flags
-	data = wire.AppendInt(data, m.MessageCounter)
+	wire.AppendInt(&data, uint8(0)) // message flags
+	wire.AppendInt(&data, m.SessionID)
+	wire.AppendInt(&data, uint8(0)) // security flags
+	wire.AppendInt(&data, m.MessageCounter)
 
 	if m.IsGroupSession {
 		setSecurityFlag(data, sessionTypeGroup)
@@ -46,22 +46,24 @@ func (m Message) MarshalBinary(key KeyProvider) ([]byte, error) {
 
 	if m.SourceNodeID != 0 {
 		setMessageFlag(data, messageFlagS)
-		data = wire.AppendInt(data, m.SourceNodeID)
+		wire.AppendInt(&data, m.SourceNodeID)
 	}
 
 	if m.DestinationNodeID != 0 {
 		setMessageFlag(data, messageFlagDSIZNodeID)
-		data = wire.AppendInt(data, m.DestinationNodeID)
+		wire.AppendInt(&data, m.DestinationNodeID)
 	} else if m.DestinationGroupID != 0 {
 		setMessageFlag(data, messageFlagDSIZGroupID)
-		data = wire.AppendInt(data, m.DestinationGroupID)
+		wire.AppendInt(&data, m.DestinationGroupID)
 	}
 
 	headerSize := len(data)
 
 	if size := len(m.MessageExtensions); size > 0 {
 		setSecurityFlag(data, securityFlagMX)
-		data = wire.AppendString[uint16](data, m.MessageExtensions)
+		if err := wire.AppendString[uint16](&data, m.MessageExtensions); err != nil {
+			return nil, err
+		}
 	}
 
 	data = append(data, m.MessagePayload...)
