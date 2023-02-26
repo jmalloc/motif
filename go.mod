@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/onsi/ginkgo/v2 v2.8.0
 	github.com/onsi/gomega v1.25.0
+	golang.org/x/crypto v0.6.0
 	golang.org/x/exp v0.0.0-20230210204819-062eb4c674ab
 )
 
