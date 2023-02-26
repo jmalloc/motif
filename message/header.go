@@ -37,16 +37,26 @@ const (
 	// messageFlagDSIZMask is a bit-mask that isolates the "DSIZ" sub-field of
 	// the "message flags" bit-field.
 	messageFlagDSIZMask = 0b000_0_0_11
+)
 
-	// messageFlagDSIZNodeID is a value of the "DSIZ" sub-field of the "message
-	// flags" bit-field. It indicates that the message has a "destination node
-	// ID" field.
-	messageFlagDSIZNodeID = 0b000_0_0_01
+const (
+	// destinationNone is a value of the "DSIZ" sub-field of the "message flags"
+	// bit-field. It indicates that the message has no destination field.
+	destinationNone = 0b00
 
-	// messageFlagDSIZGroupID is a value of the "DSIZ" sub-field of the "message
+	// destinationNode is a value of the "DSIZ" sub-field of the "message flags"
+	// bit-field. It indicates that the message has a "destination node ID"
+	// field.
+	destinationNode = 0b01
+
+	// destinationGroup is a value of the "DSIZ" sub-field of the "message
 	// flags" bit-field. It indicates that the message has a "destination group
 	// ID" field.
-	messageFlagDSIZGroupID = 0b000_0_0_10
+	destinationGroup = 0b10
+
+	// destinationReserved is a value of the "DSIZ" sub-field of the "message
+	// flags" bit-field. This value is reserved for future use.
+	destinationReserved = 0b11
 )
 
 // hasMessageFlag returns true if the given message flag is set in the header.
@@ -61,6 +71,19 @@ func setMessageFlag(header []byte, flag uint8, on bool) {
 	} else {
 		header[messageFlagsOffset] &^= flag
 	}
+}
+
+// destinationType returns the value of the "DSIZ" sub-field of the "message
+// flags" bit-field.
+func destinationType(header []byte) uint8 {
+	return header[messageFlagsOffset] & messageFlagDSIZMask
+}
+
+// setDestinationType sets the value of the "DSIZ" sub-field of the "message
+// flags" bit-field.
+func setDestinationType(header []byte, t uint8) {
+	header[messageFlagsOffset] &^= messageFlagDSIZMask
+	header[messageFlagsOffset] |= t
 }
 
 const (
@@ -165,9 +188,12 @@ func splitPacket(data []byte) (header, destination, payload []byte, err error) {
 
 	destinationOffset := n
 
-	if hasMessageFlag(data, messageFlagDSIZNodeID) {
+	switch destinationType(data) {
+	case destinationReserved:
+		return nil, nil, nil, errors.New("unsupported (reserved) destination type")
+	case destinationNode:
 		n += nodeIDSize
-	} else if hasMessageFlag(data, messageFlagDSIZGroupID) {
+	case destinationGroup:
 		n += groupIDSize
 	}
 

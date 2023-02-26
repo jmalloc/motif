@@ -52,10 +52,10 @@ func (m Message) MarshalBinary(key KeyProvider) ([]byte, error) {
 	}
 
 	if m.DestinationNodeID != 0 {
-		setMessageFlag(data, messageFlagDSIZNodeID, true)
+		setDestinationType(data, destinationNode)
 		data = binary.LittleEndian.AppendUint64(data, m.DestinationNodeID)
 	} else if m.DestinationGroupID != 0 {
-		setMessageFlag(data, messageFlagDSIZGroupID, true)
+		setDestinationType(data, destinationGroup)
 		data = binary.LittleEndian.AppendUint16(data, m.DestinationGroupID)
 	}
 
@@ -148,13 +148,14 @@ func (m *Message) UnmarshalBinary(key KeyProvider, data []byte) error {
 		m.SourceNodeID = 0
 	}
 
-	if hasMessageFlag(header, messageFlagDSIZNodeID) {
+	switch destinationType(header) {
+	case destinationNode:
 		m.DestinationNodeID = binary.LittleEndian.Uint64(destination)
 		m.DestinationGroupID = 0
-	} else if hasMessageFlag(header, messageFlagDSIZGroupID) {
+	case destinationGroup:
 		m.DestinationNodeID = 0
 		m.DestinationGroupID = binary.LittleEndian.Uint16(destination)
-	} else {
+	default:
 		m.DestinationNodeID = 0
 		m.DestinationGroupID = 0
 	}
