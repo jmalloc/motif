@@ -22,14 +22,13 @@ type SymmetricKey [SymmetricKeySize]byte
 // It corresponds to the Crypto_KDF() function as defined in the Matter Core
 // specification.
 func DeriveKey(key SymmetricKey, salt, info []byte) SymmetricKey {
-	data := kdf.DeriveKeyHMAC(
-		sha256.New,
-		key[:],
-		salt,
-		info,
-		SymmetricKeySize,
+	return SymmetricKey(
+		kdf.DeriveKeyHMAC(
+			sha256.New,
+			key[:],
+			salt,
+			info,
+			SymmetricKeySize,
+		),
 	)
-
-	copy(key[:], data)
-	return key
 }

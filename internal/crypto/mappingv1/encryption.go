@@ -32,8 +32,8 @@ type (
 	// Nonce is a nonce used for AEAD encryption.
 	Nonce [NonceSize]byte
 
-	// Extract is a message identity code (Extract) of an encrypted payload.
-	Extract [MICSize]byte
+	// MIC is a message identity code (MIC) of an encrypted payload.
+	MIC [MICSize]byte
 )
 
 // AEADEncrypt encrypts the given payload using the given key and appends
@@ -65,12 +65,12 @@ func AEADDecrypt(
 // ExtractMIC returns the message identity code (MIC) from the given payload.
 //
 // It panics if the payload is too short.
-func ExtractMIC(payload []byte) Extract {
+func ExtractMIC(payload []byte) MIC {
 	if len(payload) < MICSize {
 		panic("payload is too short")
 	}
 
-	var mic Extract
+	var mic MIC
 	copy(mic[:], payload[len(payload)-MICSize:])
 
 	return mic
