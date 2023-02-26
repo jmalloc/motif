@@ -6,19 +6,7 @@ import (
 
 	"github.com/jmalloc/motif/optional"
 	"golang.org/x/exp/constraints"
-	"golang.org/x/exp/slices"
 )
-
-// AppendInt appends an integer to *data in little-endian order.
-func AppendInt[T constraints.Integer](data *[]byte, n T) {
-	size := int(unsafe.Sizeof(n))
-	*data = slices.Grow(*data, size)
-
-	for i := 0; i < size; i++ {
-		shift := 8 * i
-		*data = append(*data, byte(n>>shift))
-	}
-}
 
 // WriteInt writes an integer to w in little-endian order.
 func WriteInt[T constraints.Integer](w io.Writer, n T) error {

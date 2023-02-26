@@ -7,7 +7,7 @@ Motif is a Go implementation of the
 - [x] Protocol message encoding/decoding
 - [x] Message framing
 - [x] Message encryption & signing
-- [ ] Message privacy enhancements
+- [x] Message privacy enhancements
 - [ ] UDP transport
 - [ ] TCP transport
 - [ ] Session establishment

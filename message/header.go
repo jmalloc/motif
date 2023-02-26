@@ -1,20 +1,30 @@
 package message
 
 import (
+	"encoding/binary"
+	"errors"
+
 	crypto "github.com/jmalloc/motif/internal/crypto/mappingv1"
 )
 
 const (
-	minHeaderSize = 4
-	maxHeaderSize = 24
-)
+	messageFlagsOffset = 0
+	messageFlagsSize   = 1
 
-const (
-	messageFlagsOffset         = 0
-	sessionIDOffset            = 1
-	securityFlagsOffset        = 3
-	messageCounterOffset       = 4
+	sessionIDOffset = 1
+	sessionIDSize   = 2
+
+	securityFlagsOffset = 3
+	securityFlagsSize   = 1
+
+	messageCounterOffset = 4
+	messageCounterSize   = 4
+
 	sourceAndDestinationOffset = 8
+	nodeIDSize                 = 8
+	groupIDSize                = 2
+
+	minHeaderSize = messageFlagsSize + sessionIDSize + securityFlagsSize + messageCounterSize
 )
 
 const (
@@ -91,11 +101,17 @@ func securityNonce(data []byte) crypto.Nonce {
 	var nonce crypto.Nonce
 
 	// security flags & message counter
-	copy(nonce[:], data[3:8])
+	copy(
+		nonce[:],
+		data[securityFlagsOffset:messageCounterOffset+messageCounterSize],
+	)
 
 	// source node ID, if present
 	if hasMessageFlag(data, messageFlagS) {
-		copy(nonce[5:], data[8:])
+		copy(
+			nonce[messageCounterOffset+messageCounterSize-securityFlagsOffset:],
+			data[sourceAndDestinationOffset:],
+		)
 	}
 
 	return nonce
@@ -106,14 +122,61 @@ func securityNonce(data []byte) crypto.Nonce {
 func privacyNonce(data []byte) crypto.Nonce {
 	var nonce crypto.Nonce
 
-	// sessionID in big-endian format (usual encoding is little-endian)
-	nonce[0] = data[2]
-	nonce[1] = data[1]
+	// session ID in big-endian format
+	binary.BigEndian.PutUint16(
+		nonce[:],
+		binary.LittleEndian.Uint16(data[sessionIDOffset:]),
+	)
 
-	// remainder of nonce is the least-significant end of the MIC
-	const micFragmentSize = crypto.MICSize - crypto.NonceSize + 2
 	mic := crypto.ExtractMIC(data)
-	copy(nonce[2:], mic[micFragmentSize:])
+
+	copy(
+		nonce[sessionIDSize:],
+		mic[crypto.MICSize-crypto.NonceSize+sessionIDSize:],
+	)
 
 	return nonce
+}
+
+// splitPacket splits a packet into separate header and payload chunks.
+//
+// It returns an error if data is definitely not long enough to contain the
+// header and a valid message. A nil error does not guarantee that the message
+// is long enough.
+func splitPacket(data []byte) (header, destination, payload []byte, err error) {
+	n := minHeaderSize
+
+	if len(data) < n {
+		return nil, nil, nil, errors.New("message header is too short")
+	}
+
+	if hasMessageFlag(data, messageFlagS) {
+		n += nodeIDSize
+	}
+
+	destinationOffset := n
+
+	if hasMessageFlag(data, messageFlagDSIZNodeID) {
+		n += nodeIDSize
+	} else if hasMessageFlag(data, messageFlagDSIZGroupID) {
+		n += groupIDSize
+	}
+
+	payloadOffset := n
+
+	if hasSecurityFlag(data, securityFlagMX) {
+		// we can't read the actual length of the extensions because it may be
+		// encrypted so we just add the 2 bytes used to store the extensions'
+		// length
+		n += 2
+	}
+
+	if len(data) < n {
+		return nil, nil, nil, errors.New("message header is too short")
+	}
+
+	return data[:payloadOffset],
+		data[destinationOffset:payloadOffset],
+		data[payloadOffset:],
+		nil
 }

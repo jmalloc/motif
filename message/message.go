@@ -1,12 +1,14 @@
 package message
 
 import (
-	"bytes"
-	"io"
+	"encoding/binary"
+	"errors"
+	"fmt"
+	"math"
 
 	"github.com/jmalloc/motif/internal/crypto/chipcompat"
 	crypto "github.com/jmalloc/motif/internal/crypto/mappingv1"
-	"github.com/jmalloc/motif/internal/wire"
+	"golang.org/x/exp/slices"
 )
 
 // KeyProvider is a function that locates the encryption/decryption key to use
@@ -29,12 +31,16 @@ type Message struct {
 
 // MarshalBinary returns the binary representation of m.
 func (m Message) MarshalBinary(key KeyProvider) ([]byte, error) {
+	if len(m.MessageExtensions) > math.MaxUint16 {
+		return nil, errors.New("message extensions are too long")
+	}
+
 	var data []byte
 
-	wire.AppendInt(&data, uint8(0)) // message flags
-	wire.AppendInt(&data, m.SessionID)
-	wire.AppendInt(&data, uint8(0)) // security flags
-	wire.AppendInt(&data, m.MessageCounter)
+	data = append(data, 0) // message flags
+	data = binary.LittleEndian.AppendUint16(data, m.SessionID)
+	data = append(data, 0) // security flags
+	data = binary.LittleEndian.AppendUint32(data, m.MessageCounter)
 
 	if m.IsGroupSession {
 		setSecurityFlag(data, sessionTypeGroup)
@@ -44,26 +50,29 @@ func (m Message) MarshalBinary(key KeyProvider) ([]byte, error) {
 		setMessageFlag(data, securityFlagC)
 	}
 
+	if m.UsePrivacyExtensions {
+		setSecurityFlag(data, securityFlagP)
+	}
+
 	if m.SourceNodeID != 0 {
 		setMessageFlag(data, messageFlagS)
-		wire.AppendInt(&data, m.SourceNodeID)
+		data = binary.LittleEndian.AppendUint64(data, m.SourceNodeID)
 	}
 
 	if m.DestinationNodeID != 0 {
 		setMessageFlag(data, messageFlagDSIZNodeID)
-		wire.AppendInt(&data, m.DestinationNodeID)
+		data = binary.LittleEndian.AppendUint64(data, m.DestinationNodeID)
 	} else if m.DestinationGroupID != 0 {
 		setMessageFlag(data, messageFlagDSIZGroupID)
-		wire.AppendInt(&data, m.DestinationGroupID)
+		data = binary.LittleEndian.AppendUint16(data, m.DestinationGroupID)
 	}
 
 	headerSize := len(data)
 
-	if size := len(m.MessageExtensions); size > 0 {
+	if size := uint16(len(m.MessageExtensions)); size != 0 {
 		setSecurityFlag(data, securityFlagMX)
-		if err := wire.AppendString[uint16](&data, m.MessageExtensions); err != nil {
-			return nil, err
-		}
+		data = binary.LittleEndian.AppendUint16(data, size)
+		data = append(data, m.MessageExtensions...)
 	}
 
 	data = append(data, m.MessagePayload...)
@@ -87,8 +96,6 @@ func (m Message) MarshalBinary(key KeyProvider) ([]byte, error) {
 		data = append(data[:headerSize], ciphertext...)
 
 		if m.UsePrivacyExtensions {
-			setSecurityFlag(data, securityFlagP)
-
 			ciphertext := crypto.PrivacyEncrypt(
 				derivePrivacyKey(encryptionKey),
 				data[messageCounterOffset:headerSize],
@@ -103,50 +110,20 @@ func (m Message) MarshalBinary(key KeyProvider) ([]byte, error) {
 
 // UnmarshalBinary sets m to the value represented by data.
 func (m *Message) UnmarshalBinary(key KeyProvider, data []byte) error {
-	r := bytes.NewReader(data)
-
-	if _, err := r.Seek(sessionIDOffset, io.SeekStart); err != nil {
+	header, destination, payload, err := splitPacket(data)
+	if err != nil {
 		return err
 	}
 
-	if err := wire.AssignInt(r, &m.SessionID); err != nil {
-		return err
-	}
+	m.IsGroupSession = hasSecurityFlag(header, sessionTypeGroup)
+	m.IsControlMessage = hasSecurityFlag(header, securityFlagC)
+	m.UsePrivacyExtensions = hasSecurityFlag(header, securityFlagP)
 
-	if _, err := r.Seek(messageCounterOffset, io.SeekStart); err != nil {
-		return err
-	}
+	m.SessionID = binary.LittleEndian.Uint16(header[sessionIDOffset:])
 
-	if err := wire.AssignInt(r, &m.MessageCounter); err != nil {
-		return err
-	}
-
-	if !hasMessageFlag(data, messageFlagS) {
-		m.SourceNodeID = 0
-	} else if err := wire.AssignInt(r, &m.SourceNodeID); err != nil {
-		return err
-	}
-
-	if !hasMessageFlag(data, messageFlagDSIZNodeID) {
-		m.DestinationNodeID = 0
-	} else if err := wire.AssignInt(r, &m.DestinationNodeID); err != nil {
-		return err
-	}
-
-	if !hasMessageFlag(data, messageFlagDSIZGroupID) {
-		m.DestinationGroupID = 0
-	} else if err := wire.AssignInt(r, &m.DestinationGroupID); err != nil {
-		return err
-	}
-
-	m.IsGroupSession = hasSecurityFlag(data, sessionTypeGroup)
-	m.IsControlMessage = hasSecurityFlag(data, securityFlagC)
-	m.UsePrivacyExtensions = hasSecurityFlag(data, securityFlagP)
-
-	headerSize, _ := r.Seek(0, io.SeekCurrent)
-
+	var encryptionKey crypto.SymmetricKey
 	if m.SessionID != 0 {
-		encryptionKey, err := key(m.SessionID)
+		encryptionKey, err = key(m.SessionID)
 		if err != nil {
 			return err
 		}
@@ -154,32 +131,62 @@ func (m *Message) UnmarshalBinary(key KeyProvider, data []byte) error {
 		if m.UsePrivacyExtensions {
 			plaintext := crypto.PrivacyDecrypt(
 				derivePrivacyKey(encryptionKey),
-				data[messageCounterOffset:headerSize],
+				header[messageCounterOffset:],
 				privacyNonce(data),
 			)
-			copy(data[messageCounterOffset:], plaintext)
+			copy(header[messageCounterOffset:], plaintext)
 		}
 
-		plaintext, err := crypto.AEADDecrypt(
+		payload, err = crypto.AEADDecrypt(
 			encryptionKey,
-			data[headerSize:],
-			data[:headerSize],
+			payload,
+			header,
 			securityNonce(data),
 		)
 		if err != nil {
 			return err
 		}
-
-		r.Reset(plaintext)
 	}
 
-	if !hasSecurityFlag(data, securityFlagMX) {
-		m.MessageExtensions = nil
-	} else if err := wire.AssignString[uint16](r, &m.MessageExtensions); err != nil {
-		return err
+	m.MessageCounter = binary.LittleEndian.Uint32(header[messageCounterOffset:])
+
+	if hasMessageFlag(header, messageFlagS) {
+		m.SourceNodeID = binary.LittleEndian.Uint64(header[sourceAndDestinationOffset:])
+	} else {
+		m.SourceNodeID = 0
 	}
 
-	return wire.AssignRemaining(r, &m.MessagePayload)
+	if hasMessageFlag(header, messageFlagDSIZNodeID) {
+		m.DestinationNodeID = binary.LittleEndian.Uint64(destination)
+		m.DestinationGroupID = 0
+	} else if hasMessageFlag(header, messageFlagDSIZGroupID) {
+		m.DestinationNodeID = 0
+		m.DestinationGroupID = binary.LittleEndian.Uint16(destination)
+	} else {
+		m.DestinationNodeID = 0
+		m.DestinationGroupID = 0
+	}
+
+	if hasSecurityFlag(header, securityFlagMX) {
+		size := int(binary.LittleEndian.Uint16(payload))
+		payload = payload[2:]
+
+		if len(payload) < size {
+			return fmt.Errorf("message extensions length is %d, but only %d bytes are available", size, len(payload))
+		}
+
+		if size != 0 {
+			m.MessageExtensions = slices.Clone(payload[:size])
+		}
+
+		payload = payload[size:]
+	}
+
+	if len(payload) > 0 {
+		m.MessagePayload = slices.Clone(payload)
+	}
+
+	return nil
 }
 
 // derivePrivacyKey derives a privacy key from an encryption key.
