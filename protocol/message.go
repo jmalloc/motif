@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/jmalloc/motif/optional"
 	"golang.org/x/exp/slices"
 )
 
@@ -19,7 +18,7 @@ type Message struct {
 	ApplicationPayload []byte
 	IsFromInitiator    bool
 	RequiresAck        bool
-	AckMessageCounter  optional.Value[uint32]
+	AckMessageCounter  *uint32
 	SecuredExtensions  []byte
 }
 
@@ -44,9 +43,9 @@ func (m Message) MarshalBinary() ([]byte, error) {
 		data = binary.LittleEndian.AppendUint16(data, m.ProtocolVendorID)
 	}
 
-	if m.AckMessageCounter.IsPresent() {
+	if m.AckMessageCounter != nil {
 		setExchangeFlag(data, exchangeFlagA, true)
-		data = binary.LittleEndian.AppendUint32(data, m.AckMessageCounter.Value())
+		data = binary.LittleEndian.AppendUint32(data, *m.AckMessageCounter)
 	}
 
 	if size := len(m.SecuredExtensions); size != 0 {
@@ -79,9 +78,10 @@ func (m *Message) UnmarshalBinary(data []byte) error {
 	}
 
 	if hasExchangeFlag(header, exchangeFlagA) {
-		m.AckMessageCounter = optional.Some(binary.LittleEndian.Uint32(ack))
+		v := binary.LittleEndian.Uint32(ack)
+		m.AckMessageCounter = &v
 	} else {
-		m.AckMessageCounter = optional.None[uint32]()
+		m.AckMessageCounter = nil
 	}
 
 	m.SecuredExtensions = nil
